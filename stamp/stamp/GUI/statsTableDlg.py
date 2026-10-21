@@ -21,14 +21,14 @@
 # along with STAMP. If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .statsTableDlgUI import Ui_StatsTableDlg
 
 from stamp.metagenomics.GenericTable import GenericTable
 
-class StatsTableDlg(QtGui.QDockWidget):
+class StatsTableDlg(QtWidgets.QDockWidget):
 	def __init__(self, preferences, parent=None, info=None):
-		QtGui.QDockWidget.__init__(self, parent)
+		QtWidgets.QDockWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_StatsTableDlg()
@@ -38,8 +38,8 @@ class StatsTableDlg(QtGui.QDockWidget):
 		self.table = ''
 		
 		# signals
-		self.connect(self.ui.btnSave, QtCore.SIGNAL("clicked()"), self.saveTable)
-		self.connect(self.ui.chkShowActiveFeatures, QtCore.SIGNAL("clicked()"), self.__updateTable)
+		self.ui.btnSave.clicked.connect(self.saveTable)
+		self.ui.chkShowActiveFeatures.clicked.connect(self.__updateTable)
 		
 	def updateTable(self, statsTest):
 		self.statsTest = statsTest
@@ -50,7 +50,7 @@ class StatsTableDlg(QtGui.QDockWidget):
 			tableData, tableHeadings = self.statsTest.results.tableData(self.ui.chkShowActiveFeatures.isChecked())
 			
 			self.table = GenericTable(tableData, tableHeadings, self)
-			self.table.sort(0,QtCore.Qt.AscendingOrder) # start with features in alphabetical order
+			self.table.sort(0,QtCore.Qt.SortOrder.AscendingOrder) # start with features in alphabetical order
 
 			self.ui.tableStatisticalSummary.setModel(self.table)
 			self.ui.tableStatisticalSummary.verticalHeader().setVisible(False)
@@ -59,27 +59,28 @@ class StatsTableDlg(QtGui.QDockWidget):
 			#self.ui.tableStatisticalSummary.resizeColumnsToContents()
 			for colIndex in range(0, self.table.columnCount(None)):
 				fm = self.ui.tableStatisticalSummary.fontMetrics()
-				maxWidth = fm.width(tableHeadings[colIndex]) + 10
+				maxWidth = fm.horizontalAdvance(tableHeadings[colIndex]) + 10
 				
 				for i in range(0, 100): # sample first 100 rows to estimate column width, this is strictly for efficiency	
-					width = fm.width(self.ui.tableStatisticalSummary.model().data(self.ui.tableStatisticalSummary.model().index(i,colIndex), QtCore.Qt.DisplayRole).toString()) + 10
+					value = self.ui.tableStatisticalSummary.model().data(self.ui.tableStatisticalSummary.model().index(i,colIndex), QtCore.Qt.ItemDataRole.DisplayRole)
+					width = fm.horizontalAdvance('' if value is None else str(value)) + 10
 					if  width > maxWidth:
 						maxWidth = width
 				
 				self.ui.tableStatisticalSummary.setColumnWidth(colIndex, maxWidth)
 		
 	def saveTable(self):
-		filename = QtGui.QFileDialog.getSaveFileName(self, 'Save table...', self.preferences['Last directory'],
+		filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save table...', self.preferences['Last directory'],
 									'Tab-separated values (*.tsv);;' +
 									'Text file (*.txt);;' +
-									'All files (*.*)')
+									'All files (*.*)')[0]
 		if filename != '':
-			self.preferences['Last directory'] = filename[0:filename.lastIndexOf('/')]
+			self.preferences['Last directory'] = filename[0:filename.rfind('/')]
 			try:
 				if self.table != '':
 					self.table.save(filename)
 			except IOError:
-				QtGui.QMessageBox.information(self, 'Failed to save table', 'Write permission for file denied.', QtGui.QMessageBox.Ok)
+				QtWidgets.QMessageBox.information(self, 'Failed to save table', 'Write permission for file denied.', QtWidgets.QMessageBox.StandardButton.Ok)
 		
 if __name__ == "__main__": 
 	pass

@@ -21,18 +21,19 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .plotDlgUI import Ui_PlotDlg
 
-class PlotDlg(QtGui.QDockWidget):
+class PlotDlg(QtWidgets.QDockWidget):
 	def __init__(self, parent=None, info=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		self.ui = Ui_PlotDlg()
 		self.ui.setupUi(self)
 		
-		QtCore.QObject.connect(self, QtCore.SIGNAL("topLevelChanged (bool)"), self.topLevelChanged )
-		QtCore.QObject.connect(self, QtCore.SIGNAL("dockLocationChanged(Qt::DockWidgetArea)"), self.dockLocationChanged)
+		# the methods below shadow the QDockWidget signals of the same name, so the signals are reached through super()
+		super().topLevelChanged.connect(self.topLevelChanged)
+		super().dockLocationChanged.connect(self.dockLocationChanged)
 		
 		self.plot = None
 

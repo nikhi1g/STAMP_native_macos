@@ -21,7 +21,7 @@
 
 import string
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .createProfileRITA_UI import Ui_CreateProfileRITADlg
 
 from stamp.GUI.customizeHeadingsDlg import CustomizeHeadingsDlg
@@ -31,9 +31,9 @@ class ProfileRow():
 		countData = []
 		hierarchy = []
 
-class CreateProfileRITADlg(QtGui.QDialog):
+class CreateProfileRITADlg(QtWidgets.QDialog):
 	def __init__(self, preferences, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_CreateProfileRITADlg()
@@ -43,17 +43,17 @@ class CreateProfileRITADlg(QtGui.QDialog):
 
 		self.centerWindow()
 		
-		QtCore.QObject.connect(self.ui.btnLoadProfiles, QtCore.SIGNAL("clicked()"), self.loadProfiles)
-		QtCore.QObject.connect(self.ui.btnCreateProfile, QtCore.SIGNAL("clicked()"), self.createProfile)
-		QtCore.QObject.connect(self.ui.btnCancel, QtCore.SIGNAL("clicked()"), self.accept)
+		self.ui.btnLoadProfiles.clicked.connect(self.loadProfiles)
+		self.ui.btnCreateProfile.clicked.connect(self.createProfile)
+		self.ui.btnCancel.clicked.connect(self.accept)
 		
 		self.selectedFiles = []
 			
 	def loadProfiles(self):
-		selectedFiles = QtGui.QFileDialog.getOpenFileNames(self, 'Load profiles', self.preferences['Last directory'], 'RITA profiles (*.txt);;All files (*.*)')
+		selectedFiles = QtWidgets.QFileDialog.getOpenFileNames(self, 'Load profiles', self.preferences['Last directory'], 'RITA profiles (*.txt);;All files (*.*)')[0]
 
 		if len(selectedFiles) > 0:
-			self.preferences['Last directory'] = selectedFiles[0][0:selectedFiles[0].lastIndexOf('/')]
+			self.preferences['Last directory'] = selectedFiles[0][0:selectedFiles[0].rfind('/')]
 			for file in selectedFiles:
 				self.selectedFiles.append(str(file))
 				self.ui.lstSelectedProfiles.addItem(file)
@@ -61,7 +61,7 @@ class CreateProfileRITADlg(QtGui.QDialog):
 	
 	def createProfile(self):
 		# get filename to save STAMP profile to
-		stampFilename = QtGui.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'], 'STAMP profile file(*.spf);;All files(*.*)')
+		stampFilename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'], 'STAMP profile file(*.spf);;All files(*.*)')[0]
 		if stampFilename == '':
 			return
 			
@@ -132,7 +132,7 @@ class CreateProfileRITADlg(QtGui.QDialog):
 		try:
 			fout = open(stampFilename, 'w')
 		except IOError:
-			QtGui.QMessageBox.information(self, 'Failed to save STAMP profile', 'Write permission for file denied.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Failed to save STAMP profile', 'Write permission for file denied.', QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 
 		mostSpecificRank = ranks[mostSpecificRankIndex]
@@ -173,6 +173,6 @@ class CreateProfileRITADlg(QtGui.QDialog):
 		self.accept()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)

@@ -21,13 +21,10 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtCore
+from PyQt6 import QtCore
 
-import os
-import sys
-import platform
-from stamp.metagenomics.DirectoryHelper import runningExecutable, getMainDir
 from stamp.GUI.plotDlg import PlotDlg
+from stamp.plugins.PluginManager import loadPluginModules
 
 class PlotsManager:
 	def __init__(self, cboPlots, plotScrollArea, defaultPlot):
@@ -42,33 +39,12 @@ class PlotsManager:
 		self.plotScrollArea = plotScrollArea
 		
 	def loadPlots(self, preferences, pluginFolder):
-		os.chdir(getMainDir())
-		
-		pluginModulePath = pluginFolder.replace('/', '.')
-
-		if runningExecutable():
-			if platform.system() == 'Windows':
-				# windows plugin folder
-				pluginFolder = 'library/' + pluginFolder
-			else:
-				# os x plugin folder
-				pluginFolder = './lib/python2.6/site-packages/' + pluginFolder
-		else:		
-			pluginFolder = os.path.join(os.path.split(os.path.realpath(__file__))[0], '..', '..', pluginFolder)
-		
-		for filename in os.listdir(pluginFolder):
-			if os.path.isdir(os.path.join (pluginFolder, filename)):
-				continue
-
-			extension = filename[filename.rfind('.')+1:len(filename)]	
-			if extension == 'py' and filename != '__init__.py':
-				pluginModule = filename[0:filename.rfind('.')]
-				theModule = __import__(pluginModulePath + pluginModule, fromlist='*')
-				theClass = getattr(theModule, pluginModule)
-				plot = theClass(preferences)
-				
-				self.plotClassDict[plot.name] = theClass
-				self.plotDict[plot.name] = plot
+		for pluginModule, theModule in loadPluginModules(pluginFolder):
+			theClass = getattr(theModule, pluginModule)
+			plot = theClass(preferences)
+			
+			self.plotClassDict[plot.name] = theClass
+			self.plotDict[plot.name] = plot
 			
 		exploratoryPlots = []
 		statisticalPlots = []
@@ -78,8 +54,8 @@ class PlotsManager:
 			else:
 				statisticalPlots.append(key)
 				
-		exploratoryPlots.sort(lambda a,b:cmp(a.upper(), b.upper()))
-		statisticalPlots.sort(lambda a,b:cmp(a.upper(), b.upper()))
+		exploratoryPlots.sort(key=str.upper)
+		statisticalPlots.sort(key=str.upper)
 			
 		for plotName in exploratoryPlots:
 			self.cboPlots.addItem(plotName)
@@ -130,7 +106,7 @@ class PlotsManager:
 		plotDlg.setWindowTitle(self.cboPlots.currentText())
 		plotDlg.setObjectName("groupLegendDlg");
 		plotDlg.setVisible(True)
-		mainWindow.addDockWidget(QtCore.Qt.RightDockWidgetArea, plotDlg)
+		mainWindow.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, plotDlg)
 		plotDlg.setFloating(True)
 		
 		newPlotWindow = self.currentPlotClass(self.currentPlot.preferences)

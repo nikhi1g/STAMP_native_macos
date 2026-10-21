@@ -21,15 +21,15 @@
 import gzip
 from os.path import splitext
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from biom.parse import parse_biom_table
 
 from .createProfileBiomUI import Ui_CreateProfileBiomDlg
 from stamp.metagenomics.StringHelper import isNumber
 
-class CreateProfileBiomDlg(QtGui.QDialog):
+class CreateProfileBiomDlg(QtWidgets.QDialog):
 	def __init__(self, preferences, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_CreateProfileBiomDlg()
@@ -39,26 +39,26 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 
 		self.centerWindow()
 		
-		QtCore.QObject.connect(self.ui.btnBiomFile, QtCore.SIGNAL("clicked()"), self.loadBiomFile)
-		QtCore.QObject.connect(self.ui.btnCreateProfile, QtCore.SIGNAL("clicked()"), self.createProfile)
-		QtCore.QObject.connect(self.ui.btnCancel, QtCore.SIGNAL("clicked()"), self.accept)
+		self.ui.btnBiomFile.clicked.connect(self.loadBiomFile)
+		self.ui.btnCreateProfile.clicked.connect(self.createProfile)
+		self.ui.btnCancel.clicked.connect(self.accept)
 		
 		self.biomFile = None
 
 	def loadBiomFile(self):
-		selectedFile = QtGui.QFileDialog.getOpenFileName(self, 'Load BIOM file', self.preferences['Last directory'], 'BIOM file (*.biom);;Compressed BIOM file (*.gz);;All files (*.*)')
+		selectedFile = QtWidgets.QFileDialog.getOpenFileName(self, 'Load BIOM file', self.preferences['Last directory'], 'BIOM file (*.biom);;Compressed BIOM file (*.gz);;All files (*.*)')[0]
 		if selectedFile != '':
-			self.preferences['Last directory'] = selectedFile[0:selectedFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = selectedFile[0:selectedFile.rfind('/')]
 			self.ui.txtBiomFile.setText(selectedFile)
 			self.biomFile = selectedFile
 	
 	def createProfile(self):
 		# determine group for each sequence ID
 		if self.biomFile == None:
-			QtGui.QMessageBox.information(self, 'Missing data', 'A BIOM file must be specified.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Missing data', 'A BIOM file must be specified.', QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 			
-		outputFile = QtGui.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'],'STAMP profile file(*.spf);;All files(*.*)')
+		outputFile = QtWidgets.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'],'STAMP profile file(*.spf);;All files(*.*)')[0]
 		if outputFile == '':
 			return
 				
@@ -67,9 +67,9 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 		self.accept()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size = self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
 		
 	def convertBiomFileToStampProfile(self, file_name, output_name, metadata_name):
 		""" Function taken from PICRUSt by Morgan Langill.
@@ -79,18 +79,21 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 		#allow file to be optionally gzipped (must use extension '.gz')
 		ext=splitext(file_name)[1]
 		if (ext == '.gz'):
-			table = parse_biom_table(gzip.open(file_name,'rb'))
+			table = parse_biom_table(gzip.open(file_name,'rt'))
 		else:
 			table = parse_biom_table(open(file_name, newline=None))
+
+		# biom-format 2.x: observation metadata and sample ids are accessed through Table.metadata() and Table.ids()
+		observation_metadata = table.metadata(axis='observation')
 		
 		metadata_name = metadata_name.split('(')[0].rstrip()
 		if metadata_name is None or metadata_name == '<observation ids>':
 			max_len_metadata = 0
-		elif table.observation_metadata and metadata_name in table.observation_metadata[0]:
+		elif observation_metadata and metadata_name in observation_metadata[0]:
 			#figure out the longest list within the given metadata
-			max_len_metadata = max(len(p[metadata_name]) for p in table.observation_metadata)
+			max_len_metadata = max(len(p[metadata_name]) for p in observation_metadata)
 		else:
-			QtGui.QMessageBox.information(self, 'Unrecognized metadata file', "'" + metadata_name + "' was not found in the BIOM table.", QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Unrecognized metadata file', "'" + metadata_name + "' was not found in the BIOM table.", QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 		
 		#make the header line
@@ -101,7 +104,7 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 		header.append('Observation Ids')
 		
 		#add the sample ids to the header line
-		header.extend(table.sample_ids)
+		header.extend(table.ids(axis='sample'))
 		
 		fout = open(output_name, 'w')
 		fout.write("\t".join(header) + '\n')
@@ -110,7 +113,7 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 		for obs_vals, obs_id, obs_metadata in table.iter(axis='observation'):
 			row=[]
 			if max_len_metadata > 0:
-				row = obs_metadata[metadata_name]
+				row = list(obs_metadata[metadata_name])	# copy: the levels appended below must not modify the table's metadata
 		
 			# add blanks if the metadata doesn't fill each level
 			if len(row) < max_len_metadata:

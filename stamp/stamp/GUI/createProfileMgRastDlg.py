@@ -23,7 +23,7 @@
 
 import string
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .createProfileMgRastUI import Ui_CreateProfileMgRastDlg
 
 from stamp.GUI.customizeHeadingsDlg import CustomizeHeadingsDlg
@@ -33,9 +33,9 @@ class ProfileRow():
 		countData = []
 		hierarchy = []
 
-class CreateProfileMgRastDlg(QtGui.QDialog):
+class CreateProfileMgRastDlg(QtWidgets.QDialog):
 	def __init__(self, preferences, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_CreateProfileMgRastDlg()
@@ -45,20 +45,20 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		
 		self.preferences = preferences
 		
-		QtCore.QObject.connect(self.ui.btnLoadProfiles, QtCore.SIGNAL("clicked()"), self.loadProfiles)
-		QtCore.QObject.connect(self.ui.btnCustomizeHeadings, QtCore.SIGNAL("clicked()"), self.customizeHeadings)
-		QtCore.QObject.connect(self.ui.btnCreateProfile, QtCore.SIGNAL("clicked()"), self.createProfile)
-		QtCore.QObject.connect(self.ui.btnCancel, QtCore.SIGNAL("clicked()"), self.accept)
+		self.ui.btnLoadProfiles.clicked.connect(self.loadProfiles)
+		self.ui.btnCustomizeHeadings.clicked.connect(self.customizeHeadings)
+		self.ui.btnCreateProfile.clicked.connect(self.createProfile)
+		self.ui.btnCancel.clicked.connect(self.accept)
 		
 		self.headings = []
 		
 		self.selectedFile = ''
 
 	def loadProfiles(self):
-		self.selectedFile = QtGui.QFileDialog.getOpenFileName(self, 'Load profile', self.preferences['Last directory'], 'MG-RAST profile (*.tsv);;All files (*.*)')
+		self.selectedFile = QtWidgets.QFileDialog.getOpenFileName(self, 'Load profile', self.preferences['Last directory'], 'MG-RAST profile (*.tsv);;All files (*.*)')[0]
 
 		if self.selectedFile != '':
-			self.preferences['Last directory'] = self.selectedFile[0:self.selectedFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = self.selectedFile[0:self.selectedFile.rfind('/')]
 			
 			# read profile information from file
 			fin = open(self.selectedFile, newline=None)
@@ -69,15 +69,15 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			self.header = self.data[0].split('\t')
 			
 			if self.header[0].strip() != 'metagenome':
-				QtGui.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as it does not begin with a 'metagenome' column.", QtGui.QMessageBox.Ok)
+				QtWidgets.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as it does not begin with a 'metagenome' column.", QtWidgets.QMessageBox.StandardButton.Ok)
 				return
 			
 			if 'abundance' not in self.header:
-				QtGui.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as it does not contain an 'abundance' column.", QtGui.QMessageBox.Ok)
+				QtWidgets.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as it does not contain an 'abundance' column.", QtWidgets.QMessageBox.StandardButton.Ok)
 				return
 			
 			if self.header[1] != 'level 1' and self.header[1] != 'source' and self.header[1] != 'domain': 
-				QtGui.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as the second column is not 'level 1', 'source', or 'domain'.", QtGui.QMessageBox.Ok)
+				QtWidgets.QMessageBox.information(self, 'Failed to parse MG-RAST profile', "This file does not appear to be a valid MG-RAST profile as the second column is not 'level 1', 'source', or 'domain'.", QtWidgets.QMessageBox.StandardButton.Ok)
 				return
 				
 			if self.header[1] == 'level 1' or self.header[1] == 'domain':
@@ -111,7 +111,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		customizeHeadingsDlg.ui.txtLevel7.setText(self.headings[6])
 		customizeHeadingsDlg.ui.txtLevel8.setText(self.headings[7])
 					 
-		if customizeHeadingsDlg.exec_() == QtGui.QDialog.Accepted:
+		if customizeHeadingsDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			self.headings[0] = customizeHeadingsDlg.ui.txtLevel1.text()
 			self.headings[1] = customizeHeadingsDlg.ui.txtLevel2.text()
 			self.headings[2] = customizeHeadingsDlg.ui.txtLevel3.text()
@@ -125,11 +125,11 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		splitCh = '\t'
 	
 		# get filename to save STAMP profile to
-		stampFilename = QtGui.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'], 'STAMP profile file(*.spf);;All files(*.*)')
+		stampFilename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'], 'STAMP profile file(*.spf);;All files(*.*)')[0]
 		if stampFilename == '':
 			return
 			
-		self.preferences['Last directory'] = stampFilename[0:stampFilename.lastIndexOf('/')]
+		self.preferences['Last directory'] = stampFilename[0:stampFilename.rfind('/')]
 
 		# set profile specific parsing information
 		hierarchyStartIndex = self.startIndex
@@ -155,7 +155,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			
 			lineSplit = self.data[i].split(splitCh)
 			if len(lineSplit) <= dataIndex:
-				QtGui.QMessageBox.information(self, 'Unrecognized file format', 'Your file does not appear to be a valid MG-RAST profile.')
+				QtWidgets.QMessageBox.information(self, 'Unrecognized file format', 'Your file does not appear to be a valid MG-RAST profile.')
 				return
 			
 			count = int(lineSplit[dataIndex])
@@ -207,7 +207,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		try:
 			fout = open(stampFilename, 'w')
 		except IOError:
-			QtGui.QMessageBox.information(self, 'Failed to save STAMP profile', 'Write permission for file denied.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Failed to save STAMP profile', 'Write permission for file denied.', QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 
 		fout.write(self.headings[0])
@@ -233,6 +233,6 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		self.accept()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
