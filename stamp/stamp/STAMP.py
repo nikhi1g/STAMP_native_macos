@@ -201,6 +201,9 @@ class MainWindow(QtWidgets.QMainWindow):
 		if not bRestoredState:
 			self.resize(800, 600)
 			self.showMaximized()
+			# first run: Qt 6 lays the group legend dock out at its 94 px size hint, which hides the
+			# group names; the Windows build shows them. Later runs restore the saved layout.
+			self.resizeDocks([self.groupLegendDlg], [230], QtCore.Qt.Orientation.Horizontal)
 
 		self.metadata = None
 

@@ -75,6 +75,9 @@ app = BUNDLE(
         'CFBundleVersion': '2.1.3',
         'LSMinimumSystemVersion': '12.0',
         'NSHighResolutionCapable': True,
+        # light window chrome: the content uses Qt's Windows style with its light palette, so
+        # a dark-mode title bar would clash with the Windows build's look
+        'NSRequiresAquaSystemAppearance': True,
         'NSHumanReadableCopyright': 'Copyright 2011-2015 Donovan Parks. GPL-3.0.',
         'LSApplicationCategoryType': 'public.app-category.education',
     },

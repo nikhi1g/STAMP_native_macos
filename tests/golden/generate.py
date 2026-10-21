@@ -154,7 +154,7 @@ def generate(upstream, soilDir):
 										for fname, args in filters.items():
 											st.results.filterFeatures(*args)
 											out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
-										st.results.setSelectedFeatures(list(profile.getFeatures())[:5])
+										st.results.setSelectedFeatures(sorted(profile.getFeatures())[:5])  # order-independent choice
 										st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
 										out[k + '/filter/selected5'] = {'active': clean(list(st.results.getActiveFeatures()))}
 										st.results.selectAllFeautres()
@@ -265,7 +265,7 @@ def generate(upstream, soilDir):
 									out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
 								st.results.filterFeatures(None, None, None)
 						if testName == 'ANOVA' and (parent, level) == configs[0]:
-							features = [row[0] for row in st.results.data[:3]]
+							features = sorted(profile.getFeatures())[:3]  # order-independent choice (ties in p-value sort differ between interpreters)
 							if min(len(g) for g in profile.activeSamplesInGroups) < 2:
 								# upstream post-hoc tests crash on groups with a single sample (NaN degrees of freedom)
 								out[key + '/posthoc'] = {'skipped': 'a group has fewer than 2 samples (upstream crashes)'}

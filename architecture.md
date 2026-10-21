@@ -49,8 +49,15 @@ The user interface must preserve the original STAMP interface as seen on the lab
   metadata, two-sample, two-group with p-value filter, multi-group, 300 DPI export); the
   Skirball demo (only Bacteroidetes remains after the p-value filter); the class soil tables;
   a headless GUI smoke test.
-- Pass criterion: p-values, effect sizes and confidence intervals match the reference to 1e-9
-  relative tolerance; filtered feature lists match exactly.
+- Pass criterion (relaxed 2026-10-20 from 1e-9 relative, user decision relayed by the
+  organizer session): every numeric output (p-values, corrected p-values, effect sizes, CI
+  endpoints) passes if the absolute or the relative difference is <= 1e-6; every significance
+  decision (the set of features passing each p-value or effect-size filter, per test and
+  dataset) matches exactly; rows are matched by feature name, not order; tied-rank
+  Benjamini-Hochberg values are verified against an independent implementation of upstream's
+  formula. Cause of the 8th-9th digit noise: scipy 0.19 (reference) and 1.18 differ in the
+  Student-t quantile `t.isf` that forms t-test and Welch CI endpoints, and upstream's
+  hypergeometric right tail `(1 - cdf) + pdf` is floating-point noise below ~1e-11 in both.
 - UI check: side-by-side screenshots against the Windows build for the main window and the
   dialogs used in CI-5.
 
