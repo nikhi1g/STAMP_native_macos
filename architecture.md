@@ -87,8 +87,9 @@ STAMP_native_macos/
   move the downloaded app and zip (or ejected dmg) to the Trash. Not Now: a second alert, "Remind you
   next time STAMP opens?" with Remind Me / Don't Remind Me.
 - Updates: Sparkle 2 inside the app, so users never return to the download page. Checks at launch and
-  every 24 h; popup "Install and Relaunch / Later / Skip This Version" with release notes. Defaults:
-  automatic checks on, automatic download and install off. "Check for Updates..." menu item and an
+  every 24 h; updates download in the background and install when STAMP quits (automatic install on;
+  user decision 2026-10-21: updates are rare, minimal and functional only). Where STAMP cannot be
+  replaced without a password, Sparkle falls back to its native prompt. "Check for Updates..." menu item and an
   update section in Preferences.
 - Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
   zip at `https://www.mimg.io/download/stamp/<version>-<build>/STAMP-<version>-<build>.zip` (immutable), signed with

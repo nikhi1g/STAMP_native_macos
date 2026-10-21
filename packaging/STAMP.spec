@@ -80,14 +80,14 @@ app = BUNDLE(
         'NSRequiresAquaSystemAppearance': True,
         'NSHumanReadableCopyright': 'Copyright 2011-2015 Donovan Parks. GPL-3.0.',
         'LSApplicationCategoryType': 'public.app-category.education',
-        # Sparkle 2 updates (stamp/updater.py): native prompt, checks at launch and every 24 h,
-        # no silent install unless the user opts in from Sparkle's prompt
+        # Sparkle 2 updates (stamp/updater.py): checks at launch and every 24 h; updates download in the
+        # background and install when STAMP quits (user decision 2026-10-21: minimal, functional updates)
         # STAMP_FEED_BASE: production by default; staging test builds point elsewhere (packaging/release.sh)
         'SUFeedURL': os.environ.get('STAMP_FEED_BASE', 'https://www.mimg.io/download/stamp').rstrip('/') + '/appcast.xml',
         'SUPublicEDKey': 'nOwgOufhSeJ6cDfZ1D4GQvUWHTILG+EJ9IqPiwSkfWY=',
         'SUEnableAutomaticChecks': True,
         'SUScheduledCheckInterval': 86400,
-        'SUAutomaticallyUpdate': False,
+        'SUAutomaticallyUpdate': True,
         'SUAllowsAutomaticUpdates': True,
     },
 )
