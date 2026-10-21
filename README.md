@@ -130,6 +130,9 @@ Full suite: `uv run pytest -q` (637 passed, 13 expected failures; GUI tests run 
 
 ## Build and release
 
+The release pipeline (branches, versions, GitHub Releases, website sync) is in [RELEASING.md](RELEASING.md).
+
+
 ```
 uv run pytest -q                         # test gate
 packaging/release.sh --dev               # notarized app + zip, Archive Utility check (~3 min)
