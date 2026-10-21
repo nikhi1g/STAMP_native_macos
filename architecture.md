@@ -38,8 +38,7 @@ The user interface must preserve the original STAMP interface as seen on the lab
 |---|---|
 | Dependencies | uv with a lockfile (`uv.lock`) |
 | Packaging | PyInstaller -> `STAMP.app` -> `STAMP.dmg` |
-| Signing | Developer ID Application certificate + notarization + stapling (pending confirmation of the paid program and certificate) |
-| Fallback signing | Ad-hoc; users right-click -> Open on first launch |
+| Signing | Developer ID Application: NIKHIL GUPTA (G7955Z5DNB); hardened runtime, secure timestamp, no entitlements; app and DMG notarized and stapled (`packaging/sign_notarize.sh`, notary keychain profile `STAMP`) |
 | Size | ~150-250 MB |
 
 ### Correctness
@@ -86,8 +85,7 @@ STAMP_native_macos/
 3. Port: Python 2 -> 3, PyQt4 -> PyQt6, matplotlib QtAgg, biom-format 2.1.x; Windows style
    (Fusion fallback), in-window menu bar (done; see Verification below).
 4. Generate golden outputs from the reference; parity tests pass (done; `tests/golden/`).
-5. Package `STAMP.app` -> `STAMP.dmg` (done, ad-hoc signed); Developer ID signing and
-   notarization pending the certificate.
+5. Package `STAMP.app` -> `STAMP-2.1.3.dmg`, Developer ID signed, notarized and stapled (done 2026-10-21).
 6. One-page install note replacing the manual's Porting Kit steps.
 
 ## Running and debugging
@@ -108,12 +106,14 @@ STAMP_native_macos/
   its own window (the manual's "Ctrl + W and Save"), Ctrl+P properties, Ctrl+L legend.
 
 ## Open items
-- Apple Developer Program: confirm paid membership; create a Developer ID Application
-  certificate; store notarization credentials.
+- Verification in a clean environment (new user account / second Mac) before publishing.
+- Hosting for the DMG + SHA-256 + source link (GPL-3).
 
 ## Findings (agent notes, not user specification)
-- This Mac has two "Apple Development: <your Apple ID email> (DC2WXMK9MY)" certificates (testing
-  only) and no Developer ID Application certificate. Xcode and `notarytool` are installed.
+- 2026-10-21 release build: bundle id `com.nikhilgupta.stamp` (was the upstream authors' domain);
+  notarization accepted with no issues for the app (eecc54cd) and the DMG (a74f889d); `spctl`:
+  Notarized Developer ID; stapler validate OK; signed app smoke test ready in 2-3 s.
+  `dist/STAMP-2.1.3.dmg` SHA-256 e5a7a16c899f1d60a77131f95020d5b91c2425fda683edfce7d51d610701188c.
 - The spec's premise that Qt's Windows styles do not run on macOS was wrong: Qt 6.11 on this
   Mac offers `Windows` (classic look) in `QStyleFactory`. The port uses it, with Fusion as the
   fallback. Pending the user's side-by-side check against the Windows build.

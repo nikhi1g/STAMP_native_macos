@@ -8,15 +8,15 @@ two samples / two groups / multiple groups, plots, saving figures) works exactly
 manual describes for the Windows version, with the same windows, menus and shortcuts.
 
 ## Install (about one minute)
-1. Open `STAMP.dmg`.
+1. Open `STAMP-2.1.3.dmg`.
 2. Drag `STAMP.app` into the `Applications` folder shown next to it. The DMG also contains
    the `examples` folder from STAMP and the `STAMP_Users_Guide.pdf`; copy them wherever you
    keep your course files if you want them.
-3. First launch only: right-click (or Control-click) `STAMP.app` in Applications and choose
-   **Open**, then click **Open** in the dialog. macOS asks this once because the app is not
-   yet signed with an Apple Developer ID. After that, open STAMP normally.
-   If macOS says the app "is damaged" or refuses to open it, run this once in Terminal:
-   `xattr -dr com.apple.quarantine /Applications/STAMP.app`
+3. Open STAMP from Applications. The first time, macOS asks whether to open an app downloaded
+   from the internet; click **Open**. STAMP is signed with an Apple Developer ID and notarized
+   by Apple, so no other steps are needed.
+   Optional integrity check: `shasum -a 256 STAMP-2.1.3.dmg` should match the published
+   `STAMP-2.1.3.dmg.sha256`.
 
 ## Use
 - **File > Load data...** (⌘O): choose your ASV profile `.txt`/`.tsv` and your metadata file,

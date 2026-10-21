@@ -67,7 +67,7 @@ app = BUNDLE(
     coll,
     name='STAMP.app',
     icon=os.path.join(PACKAGE, 'icons', 'STAMP.icns'),
-    bundle_identifier='ca.dal.cs.beikolab.STAMP',
+    bundle_identifier='com.nikhilgupta.stamp',
     info_plist={
         'CFBundleName': 'STAMP',
         'CFBundleDisplayName': 'STAMP',
