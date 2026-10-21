@@ -16,5 +16,7 @@ def test_app_menu_items_and_roles(qapp, monkeypatch):
 
 def test_credits_text():
 	assert 'Donovan Parks and Robert Beiko' in appMenu.CREDITS_HTML
-	assert '<i><a href="https://github.com/nikhi1g/STAMP_native_macos">' in appMenu.CREDITS_HTML
+	html = appMenu.creditsHtml('2.1.7')
+	assert '<i><a href="https://www.mimg.io/stamp/source/2.1.7">mimg.io/stamp/source</a></i>' in html
+	assert 'github.com' not in html
 	assert 'Source:' not in appMenu.CREDITS_HTML

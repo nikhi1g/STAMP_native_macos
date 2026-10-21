@@ -12,15 +12,19 @@
 
 import sys
 
-SOURCE_URL = 'https://github.com/nikhi1g/STAMP_native_macos'
+# stable mimg.io routes (302 redirects managed on the site): the repo can move without an app update
+SOURCE_URL = 'https://www.mimg.io/stamp/source'	# + '/<version>' = that version's exact source (GPL)
 
 CREDITS_HTML = '''<div style="text-align:center; font-family:-apple-system; font-size:11px">
 Statistical Analysis of Metagenomic Profiles<br><br>
 Original STAMP &copy; 2011&ndash;2015 Donovan Parks and Robert Beiko.<br>
 macOS port &copy; 2026 Nikhil Gupta.<br>
 Free software under the GNU General Public License v3.<br>
-<i><a href="%s">github.com/nikhi1g/STAMP_native_macos</a></i>
-</div>''' % SOURCE_URL
+<i><a href="{url}">mimg.io/stamp/source</a></i>
+</div>'''
+
+def creditsHtml(version):
+	return CREDITS_HTML.replace('{url}', '%s/%s' % (SOURCE_URL, version))
 
 _menuBar = None
 
@@ -28,7 +32,7 @@ def showAbout():
 	from stamp.STAMP import appVersion
 	if sys.platform == 'darwin':
 		from stamp import macNative
-		macNative.showAboutPanel('STAMP', appVersion(), CREDITS_HTML)
+		macNative.showAboutPanel('STAMP', appVersion(), creditsHtml(appVersion()))
 
 def install(checkForUpdates):
 	"""Add About STAMP and Check for Updates... to the application menu (macOS only)."""
