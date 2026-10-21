@@ -220,6 +220,12 @@ def offerMove(settings, parent=None):
 	box.setDefaultButton(moveButton)
 	dontRemind = QtWidgets.QCheckBox("Don't remind me about this again")
 	box.setCheckBox(dontRemind)
+	if parent is not None:	# a sheet on the STAMP window, with STAMP in front
+		from PyQt6 import QtCore
+		box.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+		parent.raise_()
+		parent.activateWindow()
+	box.raise_()
 	box.exec()
 
 	if box.clickedButton() is not moveButton:
@@ -237,7 +243,6 @@ def offerMove(settings, parent=None):
 			raise OSError('another app named STAMP.app is already in %s (left untouched); move STAMP manually if you want both' % targetDir)
 		if action == 'open-existing':
 			logging.info('newer STAMP already in %s; opening it', targetDir)
-			settings.setValue(SETTINGS_KEY, True)
 			relaunch(target, [str(os.getpid())])
 			return True
 		if action == 'replace' and not moveToTrash(target):
@@ -248,8 +253,8 @@ def offerMove(settings, parent=None):
 		QtWidgets.QMessageBox.warning(parent, 'STAMP', 'STAMP could not be moved to %s:\n%s\n\nIt will keep running from its current location.' % (targetDir, e))
 		return False
 
-	settings.setValue(SETTINGS_KEY, True)	# in Applications now; never ask again
-	settings.sync()
+	# no setting stored: once STAMP runs from Applications the prompt no longer applies, and a
+	# later download run from elsewhere should be offered the move again
 	cleanup = [str(os.getpid())]
 	mount, image = diskImageFor(source)
 	if mount:
