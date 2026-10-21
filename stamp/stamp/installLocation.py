@@ -9,8 +9,8 @@
 #     write /Applications, so no password is needed), verify the signature, relaunch from
 #     there, then put the original and the leftover download (.zip, or the ejected .dmg) in
 #     the Trash. Never asked again.
-#   Not Now -> asked again at the next launch, unless "Don't remind me about this again" is
-#     ticked, in which case it is never asked again.
+#   Not Now -> a second question, "Remind you next time STAMP opens?": Remind Me (asked again
+#     at the next launch) or Don't Remind Me (never asked again).
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -211,27 +211,17 @@ def offerMove(settings, parent=None):
 	if not shouldOffer(source, home, doNotOffer):
 		return False
 
-	box = QtWidgets.QMessageBox(parent)
-	box.setIcon(QtWidgets.QMessageBox.Icon.Question)
-	box.setWindowTitle('STAMP')
-	box.setText('Move STAMP to your Applications folder?')
-	moveButton = box.addButton('Move to Applications', QtWidgets.QMessageBox.ButtonRole.AcceptRole)
-	box.addButton('Not Now', QtWidgets.QMessageBox.ButtonRole.RejectRole)
-	box.setDefaultButton(moveButton)
-	dontRemind = QtWidgets.QCheckBox("Don't remind me about this again")
-	box.setCheckBox(dontRemind)
-	if parent is not None:	# a sheet on the STAMP window, with STAMP in front
-		from PyQt6 import QtCore
-		box.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+	from stamp import macNative
+	if parent is not None:
 		parent.raise_()
 		parent.activateWindow()
-	box.raise_()
-	box.exec()
-
-	if box.clickedButton() is not moveButton:
-		if dontRemind.isChecked():
+	choice, _ = macNative.alert('Move STAMP to your Applications folder?', ['Move to Applications', 'Not Now'])
+	if choice != 0:
+		again, _ = macNative.alert('Remind you next time STAMP opens?', ['Remind Me', "Don't Remind Me"])
+		dontRemind = again == 1
+		if dontRemind:
 			settings.setValue(SETTINGS_KEY, True)
-		logging.info('move to Applications declined (do not remind: %s)', dontRemind.isChecked())
+		logging.info('move to Applications declined (do not remind: %s)', dontRemind)
 		return False
 
 	targetDir = destinationDir(home)
@@ -250,7 +240,7 @@ def offerMove(settings, parent=None):
 		copyBundle(source, target)
 	except Exception as e:
 		logging.exception('move to Applications failed')
-		QtWidgets.QMessageBox.warning(parent, 'STAMP', 'STAMP could not be moved to %s:\n%s\n\nIt will keep running from its current location.' % (targetDir, e))
+		macNative.alert('STAMP could not be moved to %s.' % targetDir, ['OK'], informative='%s\n\nIt will keep running from its current location.' % e)
 		return False
 
 	# no setting stored: once STAMP runs from Applications the prompt no longer applies, and a

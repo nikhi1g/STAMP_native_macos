@@ -13,7 +13,7 @@ LOG=$HOME/Library/Logs/STAMP/STAMP.log
 [ -x "$APP" ] || { echo "missing $APP; run packaging/build_app.sh" >&2; exit 2; }
 mkdir -p build; : > build/app_smoke.log
 START=$(date +%s)
-STAMP_NO_MOVE_PROMPT=1 "$APP" > build/app_smoke.log 2>&1 &
+STAMP_NO_MOVE_PROMPT=1 STAMP_NO_UPDATER=1 "$APP" > build/app_smoke.log 2>&1 &
 PID=$!
 STATUS=timeout
 for _ in $(seq "$MAX"); do

@@ -72,7 +72,7 @@ app = BUNDLE(
         'CFBundleName': 'STAMP',
         'CFBundleDisplayName': 'STAMP',
         'CFBundleShortVersionString': '2.1.3',
-        'CFBundleVersion': '2',
+        'CFBundleVersion': '3',
         'LSMinimumSystemVersion': '12.0',
         'NSHighResolutionCapable': True,
         # light window chrome: the content uses Qt's Windows style with its light palette, so
@@ -80,5 +80,13 @@ app = BUNDLE(
         'NSRequiresAquaSystemAppearance': True,
         'NSHumanReadableCopyright': 'Copyright 2011-2015 Donovan Parks. GPL-3.0.',
         'LSApplicationCategoryType': 'public.app-category.education',
+        # Sparkle 2 updates (stamp/updater.py): native prompt, checks at launch and every 24 h,
+        # no silent install unless the user opts in from Sparkle's prompt
+        'SUFeedURL': 'https://www.mimg.io/download/stamp/appcast.xml',
+        'SUPublicEDKey': 'nOwgOufhSeJ6cDfZ1D4GQvUWHTILG+EJ9IqPiwSkfWY=',
+        'SUEnableAutomaticChecks': True,
+        'SUScheduledCheckInterval': 86400,
+        'SUAutomaticallyUpdate': False,
+        'SUAllowsAutomaticUpdates': True,
     },
 )

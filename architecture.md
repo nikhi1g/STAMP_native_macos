@@ -81,18 +81,20 @@ STAMP_native_macos/
 ## Distribution and updates (agreed 2026-10-21)
 - Main download: a zip of the notarized app (`STAMP-<version>-<build>.zip`); `.pkg` and `.dmg` as
   secondary downloads. No dragging, finding files or passwords for the user.
-- First launch outside an Applications folder: a prompt in front of the STAMP window, "Move STAMP to
-  your Applications folder?" with Move to Applications / Not Now and a "Don't remind me about this
-  again" checkbox. Move: copy to /Applications (or ~/Applications when the account cannot write
-  /Applications), relaunch from there, move the downloaded app and zip (or ejected dmg) to the Trash.
-  Not Now: asked again at every launch from outside Applications unless the checkbox is ticked.
+- First launch outside an Applications folder: a native macOS alert in front of the STAMP window,
+  "Move STAMP to your Applications folder?" with Move to Applications / Not Now. Move: copy to
+  /Applications (or ~/Applications when the account cannot write /Applications), relaunch from there,
+  move the downloaded app and zip (or ejected dmg) to the Trash. Not Now: a second alert, "Remind you
+  next time STAMP opens?" with Remind Me / Don't Remind Me.
 - Updates: Sparkle 2 inside the app, so users never return to the download page. Checks at launch and
   every 24 h; popup "Install and Relaunch / Later / Skip This Version" with release notes. Defaults:
   automatic checks on, automatic download and install off. "Check for Updates..." menu item and an
   update section in Preferences.
 - Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
-  zip on an immutable R2 key, signed with Developer ID (notarized) and with Sparkle's EdDSA key (kept in
-  the user's keychain).
+  zip at `https://www.mimg.io/download/stamp/updates/STAMP-<version>-<build>.zip` (immutable), signed with
+  Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). Build numbers (CFBundleVersion)
+  only increase; Sparkle compares them. `packaging/make_appcast.sh` adds each release to
+  `packaging/appcast/appcast.xml`.
 - Future, not yet scheduled: update popup and Preferences styled like STAMP's own (Windows-look) UI.
 
 ## Plan

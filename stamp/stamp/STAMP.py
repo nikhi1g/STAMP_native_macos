@@ -1905,10 +1905,15 @@ def main():
 		plugins.append(sum(len(getattr(getattr(mainWindow, name, None), 'plotDict', {})) for name in ('samplePlot', 'groupPlot', 'multiGroupPlot')))
 		logging.info('Main window shown; plugins loaded (%d two-sample tests, %d two-group tests, %d multi-group tests, %d plots)', *plugins)
 
-		def offerMove():	# in front of the main window, so the user sees STAMP behind it
+		from stamp import updater
+		updater.addMenuAction(mainWindow)	# Help > Check for Updates...
+
+		def offerMoveThenUpdates():	# in front of the main window, so the user sees STAMP behind it
 			if installLocation.offerMove(settings, mainWindow):
 				app.quit()	# relaunched from Applications
-		QtCore.QTimer.singleShot(300, offerMove)
+				return
+			updater.start()	# Sparkle: scheduled checks (launch + every 24 h), native update prompt
+		QtCore.QTimer.singleShot(300, offerMoveThenUpdates)
 		sys.exit(app.exec())
 	else:
 		print('Failed to start STAMP.')
