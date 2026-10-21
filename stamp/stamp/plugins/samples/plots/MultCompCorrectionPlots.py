@@ -24,10 +24,10 @@
 
 import sys
 
-from PyQt4 import QtCore, QtGui
+from PyQt6 import QtCore, QtGui, QtWidgets
 import numpy as np
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.multCompCorrectionUI import Ui_MultCompCorrectionDialog
 
 class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
@@ -42,13 +42,13 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		self.type = 'Statistical'
 		
 		self.settings = preferences['Settings']		
-		self.figWidth = self.settings.value(self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value(self.name + '/height', 3.5).toDouble()[0]
-		self.yAxisLogScale = self.settings.value(self.name + '/histogram log scale', False).toBool()
-		self.binWidth = self.settings.value(self.name + '/bin width', 0.01).toDouble()[0]
-		self.xLimitFig1 = self.settings.value(self.name + '/histogram x-axis limit', 0.1).toDouble()[0]
-		self.xLimitFig2 = self.settings.value(self.name + '/correction plot x-axis limit', 1.0).toDouble()[0]
-		self.xLimitFig3 = self.settings.value(self.name + '/significant features x-axis limit', 0.1).toDouble()[0]
+		self.figWidth = self.settings.value(self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value(self.name + '/height', 3.5, type=float)
+		self.yAxisLogScale = self.settings.value(self.name + '/histogram log scale', False, type=bool)
+		self.binWidth = self.settings.value(self.name + '/bin width', 0.01, type=float)
+		self.xLimitFig1 = self.settings.value(self.name + '/histogram x-axis limit', 0.1, type=float)
+		self.xLimitFig2 = self.settings.value(self.name + '/correction plot x-axis limit', 1.0, type=float)
+		self.xLimitFig3 = self.settings.value(self.name + '/significant features x-axis limit', 0.1, type=float)
 		
 		self.xMax = 0
 
@@ -66,6 +66,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 
 		self.xMax = plotToCopy.xMax
 			 
+	@classicStyle
 	def plot(self, profile, statsResults):
 		if len(statsResults.activeData) <= 0:
 			self.emptyAxis()			
@@ -124,12 +125,12 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 			label.set_rotation(90)
 			
 		for a in ax1.yaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 				
 		for a in ax1.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 			
 		for line in ax1.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -158,12 +159,12 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 			label.set_rotation(90)
 			
 		for a in ax2.yaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 				
 		for a in ax2.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 			
 		for line in ax2.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -192,12 +193,12 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 			label.set_rotation(90)
 			
 		for a in ax3.yaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 				
 		for a in ax3.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 			
 		for line in ax3.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -217,9 +218,9 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 	def configure(self, profile, statsResults):			 
 		self.configDlg = ConfigureDialog(Ui_MultCompCorrectionDialog)
 		
-		self.connect(self.configDlg.ui.btnXmaxFig1, QtCore.SIGNAL('clicked()'), self.setXaxisMax1)
-		self.connect(self.configDlg.ui.btnXmaxFig2, QtCore.SIGNAL('clicked()'), self.setXaxisMax2)
-		self.connect(self.configDlg.ui.btnXmaxFig3, QtCore.SIGNAL('clicked()'), self.setXaxisMax3)
+		self.configDlg.ui.btnXmaxFig1.clicked.connect(self.setXaxisMax1)
+		self.configDlg.ui.btnXmaxFig2.clicked.connect(self.setXaxisMax2)
+		self.configDlg.ui.btnXmaxFig3.clicked.connect(self.setXaxisMax3)
 		
 		self.configDlg.ui.spinFigWidth.setValue(self.figWidth)
 		self.configDlg.ui.spinFigHeight.setValue(self.figHeight)
@@ -231,7 +232,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		self.configDlg.ui.spinXlimitFig2.setValue(self.xLimitFig2)		
 		self.configDlg.ui.spinXlimitFig3.setValue(self.xLimitFig3)
 				
-		if self.configDlg.exec_() == QtGui.QDialog.Accepted:					
+		if self.configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:					
 			self.figWidth = self.configDlg.ui.spinFigWidth.value()
 			self.figHeight = self.configDlg.ui.spinFigHeight.value()
 
@@ -262,10 +263,10 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		self.configDlg.ui.spinXlimitFig3.setValue(self.xMax)
 
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(MultCompCorrectionPlots)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
 
 				
