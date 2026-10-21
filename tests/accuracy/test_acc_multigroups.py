@@ -12,6 +12,9 @@ from scipy import stats
 
 import oracle
 from oracle import Checks, PREFS, Q
+from test_acc_qtable import interp_tol
+
+EPS = 2.0 ** -52
 
 # (label, data)
 EDGE_MULTI = [
@@ -58,6 +61,8 @@ def test_anova(inputs):
 	ck.done()
 
 
+# all-identical data: scipy divides H by a zero tie correction (nan); upstream maps it to p = 1
+@pytest.mark.filterwarnings('ignore:invalid value encountered in scalar divide:RuntimeWarning')
 def test_kruskal_wallis(inputs):
 	"""H uses mid-ranks and the tie correction C = 1 - sum(t^3 - t)/(N^3 - N) (scipy.stats.kruskal
 	applies it; the oracle computes it exactly). Groups smaller than 5 samples: upstream returns
@@ -104,6 +109,17 @@ def _f_ppf(coverage, dfN, dfD):
 	return oracle.f_ppf(oracle.M(coverage), dfN, dfD)
 
 
+def cond_tol(label, data):
+	"""1e-12, except for the deliberately ill-conditioned 'large offset, small spread' case: means
+	of values ~1e6 that differ by ~0.1 lose log10(1e6/0.1) = 7 digits to cancellation in any
+	double-precision evaluation (sums carry ~n eps |x| absolute error). Tolerance there:
+	64 eps max|x| / min spread = 1.4e-7 (measured worst 7.5e-8, see the summary)."""
+	if not label.startswith('edge: large offset'):
+		return oracle.REL
+	vals = [v for g in data for v in g]
+	return 64 * EPS * max(abs(v) for v in vals) / 0.1
+
+
 def test_scheffe(inputs):
 	from stamp.plugins.multiGroups.postHoc.Scheffe import Scheffe
 	scheffe = Scheffe(PREFS)
@@ -128,10 +144,14 @@ def test_scheffe(inputs):
 					Fs = d * d / (msw / (N - k) * inv)
 					half = mp.sqrt(cv * oracle.M(inv)) * mp.sqrt(oracle.M(msw / (N - k)))
 					ctx = (label, coverage, i, j)
-					ck('multi/Scheffe p-value', pv[n], oracle.f_sf(oracle.M(Fs / (k - 1)), k - 1, N - k), ctx=ctx)
-					ck('multi/Scheffe effect', es[n], d, ctx=ctx)
-					ck('multi/Scheffe CI lower', lo[n], oracle.M(d) - half, ctx=ctx)
-					ck('multi/Scheffe CI upper', hi[n], oracle.M(d) + half, ctx=ctx)
+					tol = cond_tol(label, data)
+					# CI endpoints are effect -/+ half-width: relative accuracy refers to the size of
+					# those terms, abs_tol = tol * (|effect| + half-width)
+					scale = tol * float(abs(oracle.M(d)) + half)
+					ck('multi/Scheffe p-value', pv[n], oracle.f_sf(oracle.M(Fs / (k - 1)), k - 1, N - k), rel=tol, ctx=ctx)
+					ck('multi/Scheffe effect', es[n], d, rel=tol, ctx=ctx)
+					ck('multi/Scheffe CI lower', lo[n], oracle.M(d) - half, rel=tol, abs_tol=scale, ctx=ctx)
+					ck('multi/Scheffe CI upper', hi[n], oracle.M(d) + half, rel=tol, abs_tol=scale, ctx=ctx)
 					n += 1
 	ck.done()
 
@@ -158,10 +178,14 @@ def test_welch_uncorrected(inputs):
 						continue		# upstream degenerate branch
 					o = oracle.t_test(data[i], data[j], pi, pj, coverage, True, start=stats.t.isf((1 - coverage) / 2, 5))
 					ctx = (label, coverage, i, j)
-					ck('multi/WelchUncorrected p-value', pv[n], o[1], ctx=ctx)
-					ck('multi/WelchUncorrected effect (x1e4)', es[n], o[4], ctx=ctx)
-					ck('multi/WelchUncorrected CI lower', lo[n], o[2], ctx=ctx)
-					ck('multi/WelchUncorrected CI upper', hi[n], o[3], ctx=ctx)
+					tol = cond_tol(label, data)
+					# CI endpoints are effect -/+ half-width (both ~1e4 x the percent difference here);
+					# relative accuracy refers to the size of those terms
+					scale = tol * float(abs(o[4]) + (o[3] - o[2]) / 2)
+					ck('multi/WelchUncorrected p-value', pv[n], o[1], rel=tol, ctx=ctx)
+					ck('multi/WelchUncorrected effect (x1e4)', es[n], o[4], rel=tol, ctx=ctx)
+					ck('multi/WelchUncorrected CI lower', lo[n], o[2], rel=tol, abs_tol=scale, ctx=ctx)
+					ck('multi/WelchUncorrected CI upper', hi[n], o[3], rel=tol, abs_tol=scale, ctx=ctx)
 					n += 1
 	ck.done()
 
@@ -193,11 +217,11 @@ def _post_hoc_inputs(multi_profiles):
 
 def test_tukey_kramer(multi_profiles):
 	"""Upstream reads the critical value q(1 - alpha; k, df) from tables (stamp/data/tukeyQ_*.txt,
-	10 significant digits, integer df 2..200, k 2..29) without interpolation. The CI half-width
-	is q_table * s * sqrt((1/ni + 1/nj)/2), so its relative error is the table's relative error:
-	tolerance 1e-8 relative on the CI endpoints' half-width (measured: see the summary,
-	'multi/TukeyKramer CI half-width'), effect sizes at 1e-12, p-value categories exact except
-	where the exact p lies within the table error of a category boundary."""
+	integer df 2..200, k 2..29) without interpolation. The CI half-width is
+	q_table * s * sqrt((1/ni + 1/nj)/2), so its relative error is the table's: tolerance
+	oracle.qtable_tol_q(df) (measured table envelope, 2.6e-6 at df = 29; measured here: see
+	'multi/TukeyKramer CI half-width' in the summary). Effect sizes and CI centres at 1e-12;
+	p-value categories exact (asserted against the exact studentized-range p-value)."""
 	tk = plugin('postHoc', 'TukeyKramer')
 	ck = Checks()
 	for name, f, data, names in _post_hoc_inputs(multi_profiles):
@@ -216,7 +240,7 @@ def test_tukey_kramer(multi_profiles):
 					d = means[i] - means[j]
 					ctx = (name, f, coverage, i, j)
 					ck('multi/TukeyKramer effect', es[n], d, ctx=ctx)
-					ck('multi/TukeyKramer CI half-width [table tol]', (hi[n] - lo[n]) / 2, q * sw * s, rel=1e-8, ctx=ctx)
+					ck('multi/TukeyKramer CI half-width [table tol]', (hi[n] - lo[n]) / 2, q * sw * s, rel=oracle.qtable_tol_q(df), ctx=ctx)
 					ck('multi/TukeyKramer CI centre', (hi[n] + lo[n]) / 2, d, rel=1e-12, abs_tol=1e-12 * float(q * sw * s), ctx=ctx)
 					if coverage == 0.95:
 						assert pv[n] == oracle.tukey_category(psf(abs(oracle.M(d)) / (sw * s), k, df)), ctx
@@ -228,9 +252,9 @@ def test_games_howell(multi_profiles):
 	"""Games-Howell uses the Welch-Satterthwaite df, which is fractional; upstream linearly
 	interpolates the tabulated q between floor(df) and ceil(df). q is convex in df, so linear
 	interpolation overestimates it; the error is largest at small df (measured in the summary,
-	'multi/GamesHowell CI half-width'). Tolerance on the half-width: 2e-3 relative (the
-	interpolation error between integer df d and d+1 is about q''(d)/8, which is ~1e-3 of q at
-	d ~ 5 and falls off as d^-3). Effect sizes and CI centres at 1e-12."""
+	'multi/GamesHowell CI half-width', 3.3e-3 at df = 5.4). Tolerance on the half-width:
+	test_acc_qtable.interp_tol(df) (interpolation bound 2/floor(df)^3 + table envelope).
+	Effect sizes and CI centres at 1e-12."""
 	gh = plugin('postHoc', 'GamesHowell')
 	ck = Checks()
 	for name, f, data, names in _post_hoc_inputs(multi_profiles):
@@ -248,7 +272,7 @@ def test_games_howell(multi_profiles):
 				q = qcrit(0.05, k, float(df))
 				ctx = (name, f, i, j, float(df))
 				ck('multi/GamesHowell effect', es[n], d, ctx=ctx)
-				ck('multi/GamesHowell CI half-width [interp tol]', (hi[n] - lo[n]) / 2, q * adj, rel=2e-3, ctx=ctx)
+				ck('multi/GamesHowell CI half-width [interp tol]', (hi[n] - lo[n]) / 2, q * adj, rel=interp_tol(float(df)), ctx=ctx)
 				ck('multi/GamesHowell CI centre', (hi[n] + lo[n]) / 2, d, abs_tol=1e-12 * float(q * adj), ctx=ctx)
 				pexact = psf(abs(oracle.M(d)) / adj, k, float(df))
 				cat = oracle.tukey_category(pexact)

@@ -138,8 +138,11 @@ def test_white_deterministic_parts(group_profiles):
 				a, b, ta, tb = sum(s1[r]), sum(s2[r]), sum(p1[r]), sum(p2[r])
 				o1, o2 = oracle.fisher(a, b, ta, tb)
 				tol = max(oracle.REL, 8 * 2.0 ** -52 * __import__('math').lgamma(ta + tb + 1))		# see test_acc_samples.lgamma_tol
-				ck("groups/White low-count branch: Fisher [lgamma tol]", one[r], o1, rel=tol, ctx=(name, f))
-				ck("groups/White low-count branch: Fisher [lgamma tol]", two[r], o2, rel=tol, ctx=(name, f))
+				if all(float(x).is_integer() for x in (a, b, ta, tb)):
+					ck("groups/White low-count branch: Fisher one-sided [lgamma tol]", one[r], o1, rel=tol, ctx=(name, f))
+				# non-integer (relative-abundance) counts: the one-sided value is the defect
+				# test_acc_defects.py::test_fisher_one_sided_noninteger_counts
+				ck("groups/White low-count branch: Fisher two-sided [lgamma tol]", two[r], o2, rel=tol, ctx=(name, f))
 				olo, ohi, oes = oracle.ci_dp_asymptotic(a, b, ta, tb, 0.95, cc=True)
 				ck('groups/White low-count branch: DP-CC CI', lo[r], olo, ctx=(name, f))
 				ck('groups/White low-count branch: DP-CC CI', hi[r], ohi, ctx=(name, f))

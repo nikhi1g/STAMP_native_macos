@@ -27,7 +27,24 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 EXAMPLES = os.path.join(ROOT, 'stamp', 'examples')
 SOIL = os.path.join(ROOT, 'tests', 'data', 'soil')
-SKIRBALL = '/Users/rippled/Desktop/projLab/mimg/lib/analysis/ci2/fixtures'
+
+
+def _find_skirball():
+	"""The Skirball demo lives in the sibling project projLab/mimg (read-only). Found by walking up
+	from this file (works from the main checkout and from .worktrees/*); STAMP_SKIRBALL_DIR
+	overrides."""
+	if os.environ.get('STAMP_SKIRBALL_DIR'):
+		return os.environ['STAMP_SKIRBALL_DIR']
+	d = HERE
+	while d != os.path.dirname(d):
+		cand = os.path.join(d, 'mimg', 'lib', 'analysis', 'ci2', 'fixtures')
+		if os.path.isdir(cand):
+			return cand
+		d = os.path.dirname(d)
+	return None
+
+
+SKIRBALL = _find_skirball()
 PREFS = {'Pseudocount': 0.5, 'Replicates': 1000, 'Minimum reported p-value exponent': -15}
 REL, ABS = 1e-12, 1e-12
 
@@ -240,8 +257,10 @@ def f_ppf(p, d1, d2):
 # W(w) = k int phi(z) [Phi(z) - Phi(z - w)]^(k-1) dz and g_nu the density of sqrt(chi2_nu / nu).
 # Both integrals use fixed Gauss-Legendre panels (mpmath nodes at TUKEY_DPS digits). The outer
 # panels are cut at the s where q s = 1, 2, 3, 4, 6, 8, 11, 15 so that the transition of W is
-# always resolved, including large q at small nu. Accuracy (checked in test_oracle_self.py
-# against the exact k = 2 identity and against a finer rule): better than 1e-13 relative.
+# always resolved, including large q at small nu. Accuracy (checked in test_acc_oracle_self.py
+# against the exact k = 2 identity and against a finer rule): better than 1e-11 relative (worst
+# measured 2.1e-12 at non-integer nu) plus ~1e-19 absolute in the far tail (1 - W at 20 digits);
+# far below the table errors (>= 1e-7) it is used to measure.
 TUKEY_DPS = 20
 _GL = {}
 
@@ -280,6 +299,22 @@ def ptukey_sf(q, k, nu, degree=4, panels=6, dps=TUKEY_DPS):
 				g = mp.exp(logc + (nu - 1) * mp.log(s) - nu * s * s / 2)
 				total += w * g * (1 - W(q * s))
 		return +total
+
+
+def qtable_tol_q(df):
+	"""Envelope of the relative error in q of upstream's tabulated studentized-range quantiles
+	(stamp/data/tukeyQ_*.txt) for df >= 3, measured against this oracle (k = 2 column exactly via
+	the t identity, k = 3..29 by quadrature): 5e-4 at df = 4, 7e-6 at df = 6, < 1e-7 from df ~ 30.
+	The entries evidently come from an iterative quantile routine whose accuracy degrades at
+	small df, most for small alpha and large k. df = 2 is outside the envelope (wrong entries;
+	see test_acc_defects.py)."""
+	return 10.0 * df ** -4.5 + 1e-7
+
+
+def qtable_tol_p(df):
+	"""Same envelope in exceedance-probability space: P(Q > q_table)/alpha - 1 is at most
+	0.4 at df = 3, 0.09 at df = 4, 3e-4 at df = 10, 2e-6 at df = 20 (alpha = 0.001, k = 29)."""
+	return 100.0 * df ** -4.5 + 2e-6
 
 
 def qtukey_isf(alpha, k, nu, start, **kw):

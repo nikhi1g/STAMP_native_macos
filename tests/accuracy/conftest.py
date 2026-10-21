@@ -23,6 +23,8 @@ def _read(path, metadata=None):
 
 @pytest.fixture(scope='session')
 def skirball_files(tmp_path_factory):
+	if oracle.SKIRBALL is None:
+		pytest.skip('Skirball demo (projLab/mimg/lib/analysis/ci2/fixtures) not found; set STAMP_SKIRBALL_DIR')
 	d = tmp_path_factory.mktemp('skirball')
 	sub, samples = oracle.skirball_phylum_profile(str(d / 'skirball400_phylum_class.spf'))
 	full = oracle.skirball_sums_profile(str(d / 'skirball_phylum_sums.spf'))

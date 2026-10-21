@@ -30,7 +30,8 @@ def lgamma_tol(*tables_args):
 	exp(gammaln(.) + ... - gammaln(N + 1) ...) in double precision. Each gammaln of an argument of
 	size n carries an absolute error of about eps * n ln n, so the probabilities (and their sums)
 	carry a relative error of that order; for N <= 50 this is below 1e-12. Bound used: 8 eps
-	lgamma(N + 1) (measured worst case ~2 eps lgamma(N + 1), see the summary table)."""
+	lgamma(N + 1) (measured worst case in units of eps lgamma(N + 1): see 'Fisher error / (eps
+	lgamma(N+1))' in the summary table)."""
 	N = int(round(tables_args[2] + tables_args[3]))
 	return max(oracle.REL, 8 * EPS * math.lgamma(N + 1))
 
@@ -51,6 +52,10 @@ def test_fishers_exact(tables):
 		o1, o2 = oracle.fisher(s1, s2, t1, t2)
 		tol = lgamma_tol(s1, s2, t1, t2)
 		ck('samples/Fisher one-sided [lgamma tol]', one, o1, rel=tol, ctx=(label, s1, s2, t1, t2))
+		unit = EPS * max(math.lgamma(t1 + t2 + 1), 1.0)
+		for got, exp in ((one, o1), (two, o2)):
+			if exp >= oracle.SIG:
+				oracle.note_error('samples/Fisher error / (eps lgamma(N+1))', abs(got - float(exp)) / float(exp) / unit)
 		ck('samples/Fisher two-sided [lgamma tol]', two, o2, rel=tol, ctx=(label, s1, s2, t1, t2))
 		assert note == ''
 	ck.done()
@@ -119,7 +124,7 @@ def test_g_test(tables, name, yates):
 	for label, s1, s2, t1, t2 in tables:
 		one, two, note = test.hypothesisTest(s1, s2, t1, t2)
 		assert one == math.inf
-		# error-propagation band, see oracle.g_test (measured worst case ~1e-10 absolute near p = 1)
+		# error-propagation band, see oracle.g_test (measured worst case 2.4e-9 absolute near p = 1)
 		p, lo, hi = oracle.g_test(s1, s2, t1, t2, yates, band=True)
 		ck.band('samples/%s two-sided [rounding band]' % name, two, p, lo, hi, ctx=(label, s1, s2, t1, t2))
 	ck.done()
