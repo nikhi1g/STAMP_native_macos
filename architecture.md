@@ -79,7 +79,7 @@ STAMP_native_macos/
 ```
 
 ## Distribution and updates (agreed 2026-10-21)
-- Main download: a zip of the notarized app (`STAMP-<version>-<build>.zip`); `.pkg` and `.dmg` as
+- Main download: a zip of the notarized app (`STAMP-<version>.zip`); `.pkg` and `.dmg` as
   secondary downloads. No dragging, finding files or passwords for the user.
 - First launch outside an Applications folder: a native macOS alert in front of the STAMP window,
   "Move STAMP to your Applications folder?" with Move to Applications / Not Now. Move: copy to
@@ -89,14 +89,15 @@ STAMP_native_macos/
 - Updates: Sparkle 2 with its standard native prompt, so users never return to the download page.
   Checks at launch and every 24 h; "A new version of STAMP is available" with Install Update /
   Remind Me Later (asked again at the next 24 h check). Never installs without the user. Manual
-  check: Help > Check for Updates... and the Dock icon's menu ("You're up to date" when nothing newer).
+  check: STAMP menu, Help menu and Dock menu > Check for Updates... ("You're up to date" when nothing
+  newer). The update prompt shows only the title and release notes.
 - Versions: semantic major.minor.patch, the single version users see and Sparkle compares
   (CFBundleShortVersionString = CFBundleVersion). 2.1.3 is upstream STAMP (and the first DMG, which has
   no updater); the first release with the updater is 2.1.4.
 - Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
   zip at `https://www.mimg.io/download/stamp/<version>/STAMP-<version>.zip` (immutable), signed with
   Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). `packaging/make_appcast.sh` adds each release to
-  `packaging/appcast/appcast.xml`.
+  `packaging/appcast/<channel>/appcast.xml` (production, staging).
 - Future, not yet scheduled: update popup and Preferences styled like STAMP's own (Windows-look) UI.
 
 ## Plan
