@@ -21,7 +21,7 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-import scipy
+import numpy
 import math
 
 from numpy import mean
@@ -30,14 +30,15 @@ def bootstrapDiffOfMeanProp(group1, group2, coverage, replicates = 1000):
 	sampleSize1 = len(group1)
 	sampleSize2 = len(group2)
 	
-	g1 = scipy.array(group1, copy = 0) # Don't copy if possible
-	g2 = scipy.array(group2, copy = 0)
+	g1 = numpy.asarray(group1) # Don't copy if possible
+	g2 = numpy.asarray(group2)
 
 	distribution = []
 	for _ in range(0, replicates):
 		# Draw samples from groups at random, with replacement
-		choices1 = scipy.random.random_integers(0, sampleSize1-1, sampleSize1)
-		choices2 = scipy.random.random_integers(0, sampleSize2-1, sampleSize2)
+		# random_integers(lo, hi) was randint(lo, hi + 1): same inclusive bound and random stream
+		choices1 = numpy.random.randint(0, sampleSize1, sampleSize1)
+		choices2 = numpy.random.randint(0, sampleSize2, sampleSize2)
 		samplesGroup1 = g1[choices1]
 		samplesGroup2 = g2[choices2]
 		

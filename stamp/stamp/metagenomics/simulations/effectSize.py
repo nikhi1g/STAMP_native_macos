@@ -10,8 +10,8 @@ fout = open('effectSizeTest.txt' ,'w')
 
 for sampleSize in sampleSizes:
   print(sampleSize)
-  a = sampleSize / 2
-  b = sampleSize / 2
+  a = sampleSize // 2
+  b = sampleSize // 2
   
   pValueTwoSided = 1.0
   while pValueTwoSided > 0.05:

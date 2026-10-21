@@ -98,7 +98,7 @@ if __name__ == "__main__":
 		print(a)
 		start = time.time()
 		for i in range(0, 10):
-			pValueOne, pValueTwo = hypergeometric.hypothesisTest(a/10, a/10, 1000000, 1000000)
+			pValueOne, pValueTwo = hypergeometric.hypothesisTest(a//10, a//10, 1000000, 1000000)
 		elapsed = (time.time() - start) / 10
 		fout.write(str(a) + ',' + str(elapsed) + '\n')
 		print(elapsed)

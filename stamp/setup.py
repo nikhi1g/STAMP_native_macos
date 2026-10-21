@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 pluginPkgs = []
 pluginPkgs.append('stamp.plugins')
@@ -47,12 +47,12 @@ setup(
     url='http://pypi.python.org/pypi/stamp/',
     description='A graphical software package for analyzing taxonomic and functional profiles.',
     data_files = root_files,
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
+    python_requires=">=3.12",
     install_requires=[
-        "numpy >= 1.9.1",
-        "scipy >= 0.15.1",
-        "matplotlib >= 1.4.2",
-        "six >= 1.3",
-        "biom-format >= 2.0.1",
-        "pyqi >= 0.3.2",],
+        "PyQt6 >= 6.7",
+        "numpy >= 2.0",
+        "scipy >= 1.14",
+        "matplotlib >= 3.9",
+        "biom-format >= 2.1.15",],
 )
