@@ -60,3 +60,27 @@ def alert(message, buttons, suppressionTitle=None, informative=None):
 		suppressed = send(send(a, 'suppressionButton'), 'state', restype=ctypes.c_long) == 1
 	send(a, 'release', restype=None)
 	return result - NSAlertFirstButtonReturn, suppressed
+
+def _dictionary(pairs):
+	d = send(cls('NSMutableDictionary'), 'dictionary')
+	for key, value in pairs:
+		send(d, 'setObject:forKey:', value, nsstring(key), restype=None)
+	return d
+
+def htmlAttributedString(html):
+	data = html.encode('utf-8')
+	nsdata = send(cls('NSData'), 'dataWithBytes:length:', data, len(data), argtypes=[ctypes.c_char_p, ctypes.c_ulong])
+	return send(send(cls('NSAttributedString'), 'alloc'), 'initWithHTML:documentAttributes:', nsdata, None)
+
+def showAboutPanel(name, version, creditsHtml):
+	"""macOS standard About panel: app icon, name, "Version <version>", centred credits."""
+	app = send(cls('NSApplication'), 'sharedApplication')
+	send(app, 'activateIgnoringOtherApps:', True, restype=None, argtypes=[ctypes.c_bool])
+	options = _dictionary([
+		('ApplicationName', nsstring(name)),
+		('ApplicationVersion', nsstring(version)),
+		('Version', nsstring('')),	# no "(build)" after the version
+		('Copyright', nsstring('')),	# copyright lines are in the credits
+		('Credits', htmlAttributedString(creditsHtml)),
+	])
+	send(app, 'orderFrontStandardAboutPanelWithOptions:', options, restype=None)

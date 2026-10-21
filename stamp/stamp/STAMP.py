@@ -1920,6 +1920,8 @@ def main():
 
 		from stamp import updater
 		updater.addMenuAction(mainWindow)	# Help > Check for Updates...
+		from stamp import appMenu
+		appMenu.install(updater.checkForUpdates)	# STAMP menu (top left): About STAMP, Check for Updates...
 
 		def offerMoveThenUpdates():	# in front of the main window, so the user sees STAMP behind it
 			if installLocation.offerMove(settings, mainWindow):
