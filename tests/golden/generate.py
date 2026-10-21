@@ -18,25 +18,14 @@ import os
 import random
 import sys
 
-upstream = os.path.abspath(sys.argv[1])
-soilDir = os.path.abspath(sys.argv[2])
-outPath = sys.argv[3]
-sys.path.insert(0, upstream)
-
 import numpy
 
-from stamp.metagenomics.fileIO.StampIO import StampIO
-from stamp.metagenomics.fileIO.MetadataIO import MetadataIO
-from stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
-from stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
-from stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
-
-prefs = {'Pseudocount': 0.5, 'Executable directory': upstream, 'Replicates': 200,
-         'Minimum reported p-value exponent': -15}
+prefs = {'Pseudocount': 0.5, 'Replicates': 200, 'Minimum reported p-value exponent': -15}
 
 def load(path, cls):
 	module = __import__(path, fromlist=['*'])
 	return getattr(module, cls)(prefs)
+
 
 SAMPLE_TESTS = ['ChiSquare', 'ChiSquareYates', 'DiffBetweenProp', 'Fishers', 'GTest', 'GTestFisher', 'GTestYates', 'Hypergeometric']
 SAMPLE_TESTS_RANDOM = ['Bootstrap', 'Permutation']
@@ -52,6 +41,9 @@ CORRECTIONS = ['NoCorrection', 'Bonferroni', 'Sidak', 'BenjaminiHochbergFDR']
 UNCLASSIFIED = ['Retain unclassified reads', 'Remove unclassified reads', 'Use only for calculating frequency profiles']
 
 def clean(v):
+	if isinstance(v, BaseException):
+		# Python 2 upstream returns the exception object itself as a 'note' in degenerate cases
+		return str(v)
 	if isinstance(v, (list, tuple)):
 		return [clean(x) for x in v]
 	if isinstance(v, dict):
@@ -83,195 +75,220 @@ def record(results, extra=None):
 		d.update(extra)
 	return d
 
-out = {}
-
-def datasets():
+def datasets(upstream, soilDir):
 	ex = os.path.join(upstream, 'examples', 'EnterotypesArumugam')
 	yield ('enterotypes', os.path.join(ex, 'Enterotypes.profile.spf'), os.path.join(ex, 'Enterotypes.metadata.tsv'), 'Enterotype', 'Nationality')
 	for level in ['phylum', 'class', 'genus']:
 		yield ('soil_' + level, os.path.join(soilDir, 'soil_%s_abundance.tsv' % level), os.path.join(soilDir, 'metadata.tsv'), 'Undisturbed vs Disturbed', 'Site')
 
-for name, profilePath, metadataPath, groupField, groupField2 in datasets():
-	tree, err = StampIO(prefs).read(profilePath)
-	assert err is None, err
-	metadata, warn = MetadataIO(prefs).read(metadataPath, tree)
-	out[name + '/load'] = {'samples': clean(tree.sampleNames), 'headings': clean(tree.hierarchyHeadings),
-		'numSequences': clean([tree.numSequencesInSample(s) for s in tree.sampleNames]),
-		'metadataFeatures': clean(metadata.getFeatures()), 'metadataWarning': clean(warn)}
-	samples = tree.sampleNames
-	levels = list(tree.hierarchyHeadings)
-	configs = [('Entire sample', levels[-1])]
-	if len(levels) > 1:
-		configs.append(('Entire sample', levels[0]))
-		configs.append((levels[0], levels[-1]))
+def generate(upstream, soilDir):
+	'''Run every scenario; returns a JSON-serializable dict keyed by scenario.'''
+	sys.path.insert(0, upstream)
+	prefs['Executable directory'] = upstream
+	from stamp.metagenomics.fileIO.StampIO import StampIO
+	from stamp.metagenomics.fileIO.MetadataIO import MetadataIO
+	from stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
+	from stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
+	from stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
 
-	# ---- two samples
-	for parent, level in configs:
-		for unclassified in UNCLASSIFIED:
-			profile = tree.createSampleProfile(samples[0], samples[1], parent, level, unclassified)
-			key = '%s/samples/%s|%s|%s' % (name, parent, level, unclassified)
-			out[key + '/profile'] = {'features': clean(profile.getFeatures()),
-				'tables': clean([profile.getTableData(f) for f in profile.getFeatures()]),
-				'numFeatures': profile.getNumFeatures(), 'numParentCategories': profile.getNumParentCategories()}
-			if unclassified != UNCLASSIFIED[1] and (parent, level) != configs[0]:
-				continue
-			for testName in SAMPLE_TESTS:
-				test = load('stamp.plugins.samples.statisticalTests.' + testName, testName)
-				ciList = SAMPLE_CI if testName == 'Fishers' else SAMPLE_CI[:1]
-				for ciName in ciList:
-					ci = load('stamp.plugins.samples.confidenceIntervalMethods.' + ciName, ciName)
-					for testType in ['Two-sided', 'One-sided']:
-						if testType == 'One-sided' and ciName != SAMPLE_CI[0]:
-							continue
-						for coverage in ([0.95, 0.99] if (testName == 'Fishers' and ciName == 'NewcombeWilson') else [0.95]):
-							st = SampleStatsTests(prefs)
-							st.run(test, testType, ci, coverage, profile)
-							for corrName in (CORRECTIONS if testName == 'Fishers' and ciName == SAMPLE_CI[0] and testType == 'Two-sided' else CORRECTIONS[:1]):
-								corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
-								st.results.performMultCompCorrection(corr)
-								st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
-								k = '%s/%s|%s|%s|%s|%s' % (key, testName, ciName, testType, coverage, corrName)
-								out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
-								if corrName == 'NoCorrection' and ciName == SAMPLE_CI[0] and testType == 'Two-sided':
-									es1 = load('stamp.plugins.samples.effectSizeFilters.DiffBetweenProp', 'DiffBetweenProp')
-									es2 = load('stamp.plugins.samples.effectSizeFilters.RatioProportions', 'RatioProportions')
-									es3 = load('stamp.plugins.samples.effectSizeFilters.OddsRatio', 'OddsRatio')
-									filters = {
-										'p05': (0.05, None, None, None, None, None, None, None, None, 'OR', None, None),
-										'p05_seqmax10': (0.05, 'maximum', 10, None, None, None, None, None, None, 'OR', None, None),
-										'seqmin10': (None, 'minimum', 10, None, None, None, None, None, None, 'OR', None, None),
-										'seqind_5_20': (None, 'independent', 5, 20, None, None, None, None, None, 'OR', None, None),
-										'parentmax100': (None, None, None, None, 'maximum', 100, None, None, None, 'OR', None, None),
-										'parentind_50_50': (None, None, None, None, 'independent', 50, 50, None, None, 'OR', None, None),
-										'dp1': (None, None, None, None, None, None, None, es1, 1.0, 'OR', None, None),
-										'rp2': (None, None, None, None, None, None, None, es2, 2.0, 'OR', None, None),
-										'or2': (None, None, None, None, None, None, None, es3, 2.0, 'OR', None, None),
-										'dp1_OR_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'OR', es2, 2.0),
-										'dp1_AND_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'AND', es2, 2.0),
-										'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
-									}
-									for fname, args in filters.items():
-										st.results.filterFeatures(*args)
-										out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
-									st.results.setSelectedFeatures(list(profile.getFeatures())[:5])
-									st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
-									out[k + '/filter/selected5'] = {'active': clean(list(st.results.getActiveFeatures()))}
-									st.results.selectAllFeautres()
-			for testName in SAMPLE_TESTS_RANDOM:
-				test = load('stamp.plugins.samples.statisticalTests.' + testName, testName)
-				ci = load('stamp.plugins.samples.confidenceIntervalMethods.' + SAMPLE_CI[0], SAMPLE_CI[0])
-				random.seed(1); numpy.random.seed(1)
-				st = SampleStatsTests(prefs)
-				st.run(test, 'Two-sided', ci, 0.95, profile)
-				st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
-				st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
-				out['%s/%s|random' % (key, testName)] = record(st.results)
+	out = {}
+	for name, profilePath, metadataPath, groupField, groupField2 in datasets(upstream, soilDir):
+		tree, err = StampIO(prefs).read(profilePath)
+		assert err is None, err
+		metadata, warn = MetadataIO(prefs).read(metadataPath, tree)
+		out[name + '/load'] = {'samples': clean(tree.sampleNames), 'headings': clean(tree.hierarchyHeadings),
+			'numSequences': clean([tree.numSequencesInSample(s) for s in tree.sampleNames]),
+			'metadataFeatures': clean(metadata.getFeatures()), 'metadataWarning': clean(warn)}
+		samples = tree.sampleNames
+		levels = list(tree.hierarchyHeadings)
+		configs = [('Entire sample', levels[-1])]
+		if len(levels) > 1:
+			configs.append(('Entire sample', levels[0]))
+			configs.append((levels[0], levels[-1]))
 
-	# ---- two groups
-	for field in [groupField, groupField2]:
-		metadata.setActiveField(field, tree)
-		groups = sorted(tree.groupDict.keys())
-		out['%s/groups/%s/groupDict' % (name, field)] = clean(dict((g, sorted(tree.groupDict[g])) for g in groups))
-		out['%s/groups/%s/numSequencesInGroup' % (name, field)] = clean(dict((g, tree.numSequencesInGroup(g, metadata)) for g in groups))
-		pairs = [(groups[0], groups[1]), (groups[0], '<All other samples>')]
+		# ---- two samples
 		for parent, level in configs:
-			for g1, g2 in pairs:
-				profile = tree.createGroupProfile(g1, g2, parent, level, metadata, UNCLASSIFIED[1])
-				key = '%s/groups/%s|%s|%s|%s|%s' % (name, field, parent, level, g1, g2)
+			for unclassified in UNCLASSIFIED:
+				profile = tree.createSampleProfile(samples[0], samples[1], parent, level, unclassified)
+				key = '%s/samples/%s|%s|%s' % (name, parent, level, unclassified)
 				out[key + '/profile'] = {'features': clean(profile.getFeatures()),
-					'counts': clean([profile.getFeatureCounts(f) for f in profile.getFeatures()]),
-					'parentCounts': clean([profile.getParentFeatureCounts(f) for f in profile.getFeatures()]),
-					'proportions': clean([profile.getFeatureProportions(f) for f in profile.getFeatures()]),
-					'samplesInGroup1': clean(sorted(profile.samplesInGroup1)), 'samplesInGroup2': clean(sorted(profile.samplesInGroup2))}
+					'tables': clean([profile.getTableData(f) for f in profile.getFeatures()]),
+					'numFeatures': profile.getNumFeatures(), 'numParentCategories': profile.getNumParentCategories()}
+				if unclassified != UNCLASSIFIED[1] and (parent, level) != configs[0]:
+					continue
+				for testName in SAMPLE_TESTS:
+					test = load('stamp.plugins.samples.statisticalTests.' + testName, testName)
+					ciList = SAMPLE_CI if testName == 'Fishers' else SAMPLE_CI[:1]
+					for ciName in ciList:
+						ci = load('stamp.plugins.samples.confidenceIntervalMethods.' + ciName, ciName)
+						for testType in ['Two-sided', 'One-sided']:
+							if testType == 'One-sided' and ciName != SAMPLE_CI[0]:
+								continue
+							for coverage in ([0.95, 0.99] if (testName == 'Fishers' and ciName == 'NewcombeWilson') else [0.95]):
+								st = SampleStatsTests(prefs)
+								st.run(test, testType, ci, coverage, profile)
+								for corrName in (CORRECTIONS if testName == 'Fishers' and ciName == SAMPLE_CI[0] and testType == 'Two-sided' else CORRECTIONS[:1]):
+									corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
+									st.results.performMultCompCorrection(corr)
+									st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
+									k = '%s/%s|%s|%s|%s|%s' % (key, testName, ciName, testType, coverage, corrName)
+									out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
+									if corrName == 'NoCorrection' and ciName == SAMPLE_CI[0] and testType == 'Two-sided':
+										es1 = load('stamp.plugins.samples.effectSizeFilters.DiffBetweenProp', 'DiffBetweenProp')
+										es2 = load('stamp.plugins.samples.effectSizeFilters.RatioProportions', 'RatioProportions')
+										es3 = load('stamp.plugins.samples.effectSizeFilters.OddsRatio', 'OddsRatio')
+										filters = {
+											'p05': (0.05, None, None, None, None, None, None, None, None, 'OR', None, None),
+											'p05_seqmax10': (0.05, 'maximum', 10, None, None, None, None, None, None, 'OR', None, None),
+											'seqmin10': (None, 'minimum', 10, None, None, None, None, None, None, 'OR', None, None),
+											'seqind_5_20': (None, 'independent', 5, 20, None, None, None, None, None, 'OR', None, None),
+											'parentmax100': (None, None, None, None, 'maximum', 100, None, None, None, 'OR', None, None),
+											'parentind_50_50': (None, None, None, None, 'independent', 50, 50, None, None, 'OR', None, None),
+											'dp1': (None, None, None, None, None, None, None, es1, 1.0, 'OR', None, None),
+											'rp2': (None, None, None, None, None, None, None, es2, 2.0, 'OR', None, None),
+											'or2': (None, None, None, None, None, None, None, es3, 2.0, 'OR', None, None),
+											'dp1_OR_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'OR', es2, 2.0),
+											'dp1_AND_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'AND', es2, 2.0),
+											'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
+										}
+										for fname, args in filters.items():
+											st.results.filterFeatures(*args)
+											out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+										st.results.setSelectedFeatures(list(profile.getFeatures())[:5])
+										st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
+										out[k + '/filter/selected5'] = {'active': clean(list(st.results.getActiveFeatures()))}
+										st.results.selectAllFeautres()
+				for testName in SAMPLE_TESTS_RANDOM:
+					test = load('stamp.plugins.samples.statisticalTests.' + testName, testName)
+					ci = load('stamp.plugins.samples.confidenceIntervalMethods.' + SAMPLE_CI[0], SAMPLE_CI[0])
+					random.seed(1); numpy.random.seed(1)
+					st = SampleStatsTests(prefs)
+					st.run(test, 'Two-sided', ci, 0.95, profile)
+					st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
+					st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
+					out['%s/%s|random' % (key, testName)] = record(st.results)
+
+		# ---- two groups
+		for field in [groupField, groupField2]:
+			metadata.setActiveField(field, tree)
+			groups = sorted(tree.groupDict.keys())
+			out['%s/groups/%s/groupDict' % (name, field)] = clean(dict((g, sorted(tree.groupDict[g])) for g in groups))
+			out['%s/groups/%s/numSequencesInGroup' % (name, field)] = clean(dict((g, tree.numSequencesInGroup(g, metadata)) for g in groups))
+			if len(groups) < 2:
+				out['%s/groups/%s' % (name, field)] = {'skipped': 'fewer than 2 groups'}
+				continue
+			pairs = [(groups[0], groups[1]), (groups[0], '<All other samples>')]
+			for parent, level in configs:
+				for g1, g2 in pairs:
+					profile = tree.createGroupProfile(g1, g2, parent, level, metadata, UNCLASSIFIED[1])
+					key = '%s/groups/%s|%s|%s|%s|%s' % (name, field, parent, level, g1, g2)
+					out[key + '/profile'] = {'features': clean(profile.getFeatures()),
+						'counts': clean([profile.getFeatureCounts(f) for f in profile.getFeatures()]),
+						'parentCounts': clean([profile.getParentFeatureCounts(f) for f in profile.getFeatures()]),
+						'proportions': clean([profile.getFeatureProportions(f) for f in profile.getFeatures()]),
+						'samplesInGroup1': clean(sorted(profile.samplesInGroup1)), 'samplesInGroup2': clean(sorted(profile.samplesInGroup2))}
+					if (parent, level) != configs[0] and field != groupField:
+						continue
+					for testName in GROUP_TESTS:
+						test = load('stamp.plugins.groups.statisticalTests.' + testName, testName)
+						for testType in ['Two-sided', 'One-sided']:
+							for coverage in [0.95, 0.99]:
+								if (testType == 'One-sided' or coverage == 0.99) and (parent, level) != configs[0]:
+									continue
+								st = GroupStatsTests(prefs)
+								st.run(test, testType, test.confIntervMethods[0], coverage, profile)
+								for corrName in (CORRECTIONS if testType == 'Two-sided' and coverage == 0.95 else CORRECTIONS[:1]):
+									corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
+									st.results.performMultCompCorrection(corr)
+									st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
+									k = '%s/%s|%s|%s|%s' % (key, testName, testType, coverage, corrName)
+									out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
+									if corrName == 'NoCorrection' and testType == 'Two-sided' and coverage == 0.95:
+										es1 = load('stamp.plugins.groups.effectSizeFilters.DiffBetweenProp', 'DiffBetweenProp')
+										es2 = load('stamp.plugins.groups.effectSizeFilters.RatioProportions', 'RatioProportions')
+										filters = {
+											'p05': (0.05, None, None, None, None, None, None, None, None, 'OR', None, None),
+											'p05_seqmax10': (0.05, 'maximum', 10, None, None, None, None, None, None, 'OR', None, None),
+											'seqmin10': (None, 'minimum', 10, None, None, None, None, None, None, 'OR', None, None),
+											'seqind_5_20': (None, 'independent', 5, 20, None, None, None, None, None, 'OR', None, None),
+											'parentmax100': (None, None, None, None, 'maximum', 100, None, None, None, 'OR', None, None),
+											'dp1': (None, None, None, None, None, None, None, es1, 1.0, 'OR', None, None),
+											'rp2': (None, None, None, None, None, None, None, es2, 2.0, 'OR', None, None),
+											'dp1_OR_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'OR', es2, 2.0),
+											'dp1_AND_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'AND', es2, 2.0),
+											'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
+										}
+										for fname, args in filters.items():
+											st.results.filterFeatures(*args)
+											out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+					if (parent, level) == configs[0] and g2 != '<All other samples>':
+						for testName in GROUP_TESTS_RANDOM:
+							test = load('stamp.plugins.groups.statisticalTests.' + testName, testName)
+							if min(len(profile.samplesInGroup1), len(profile.samplesInGroup2)) < 8:
+								out['%s/%s|random' % (key, testName)] = {'skipped': 'group with fewer than 8 samples (upstream crashes)'}
+								continue
+							random.seed(1); numpy.random.seed(1)
+							st = GroupStatsTests(prefs)
+							st.run(test, 'Two-sided', test.confIntervMethods[0], 0.95, profile)
+							st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
+							st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
+							out['%s/%s|random' % (key, testName)] = record(st.results)
+
+		# ---- multiple groups
+		for field in [groupField, groupField2]:
+			metadata.setActiveField(field, tree)
+			for parent, level in configs:
+				profile = tree.createMultiGroupProfile(list(tree.groupDict.keys()), parent, level, metadata, UNCLASSIFIED[1])
+				key = '%s/multi/%s|%s|%s' % (name, field, parent, level)
+				out[key + '/profile'] = {'features': clean(profile.getFeatures()), 'activeGroupNames': clean(profile.activeGroupNames),
+					'activeSamplesInGroups': clean(profile.activeSamplesInGroups),
+					'counts': clean([profile.getActiveFeatureCounts(f) for f in profile.getFeatures()]),
+					'parentCounts': clean([profile.getActiveParentCounts(f) for f in profile.getFeatures()]),
+					'proportions': clean([profile.getActiveFeatureProportions(f) for f in profile.getFeatures()])}
 				if (parent, level) != configs[0] and field != groupField:
 					continue
-				for testName in GROUP_TESTS:
-					test = load('stamp.plugins.groups.statisticalTests.' + testName, testName)
-					for testType in ['Two-sided', 'One-sided']:
-						for coverage in [0.95, 0.99]:
-							if (testType == 'One-sided' or coverage == 0.99) and (parent, level) != configs[0]:
-								continue
-							st = GroupStatsTests(prefs)
-							st.run(test, testType, test.confIntervMethods[0], coverage, profile)
-							for corrName in (CORRECTIONS if testType == 'Two-sided' and coverage == 0.95 else CORRECTIONS[:1]):
-								corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
-								st.results.performMultCompCorrection(corr)
-								st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
-								k = '%s/%s|%s|%s|%s' % (key, testName, testType, coverage, corrName)
-								out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
-								if corrName == 'NoCorrection' and testType == 'Two-sided' and coverage == 0.95:
-									es1 = load('stamp.plugins.groups.effectSizeFilters.DiffBetweenProp', 'DiffBetweenProp')
-									es2 = load('stamp.plugins.groups.effectSizeFilters.RatioProportions', 'RatioProportions')
-									filters = {
-										'p05': (0.05, None, None, None, None, None, None, None, None, 'OR', None, None),
-										'p05_seqmax10': (0.05, 'maximum', 10, None, None, None, None, None, None, 'OR', None, None),
-										'seqmin10': (None, 'minimum', 10, None, None, None, None, None, None, 'OR', None, None),
-										'seqind_5_20': (None, 'independent', 5, 20, None, None, None, None, None, 'OR', None, None),
-										'parentmax100': (None, None, None, None, 'maximum', 100, None, None, None, 'OR', None, None),
-										'dp1': (None, None, None, None, None, None, None, es1, 1.0, 'OR', None, None),
-										'rp2': (None, None, None, None, None, None, None, es2, 2.0, 'OR', None, None),
-										'dp1_OR_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'OR', es2, 2.0),
-										'dp1_AND_rp2': (None, None, None, None, None, None, None, es1, 1.0, 'AND', es2, 2.0),
-										'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
-									}
-									for fname, args in filters.items():
-										st.results.filterFeatures(*args)
-										out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
-				if (parent, level) == configs[0] and g2 != '<All other samples>':
-					for testName in GROUP_TESTS_RANDOM:
-						test = load('stamp.plugins.groups.statisticalTests.' + testName, testName)
-						if min(len(profile.samplesInGroup1), len(profile.samplesInGroup2)) < 8:
-							out['%s/%s|random' % (key, testName)] = {'skipped': 'group with fewer than 8 samples (upstream crashes)'}
-							continue
-						random.seed(1); numpy.random.seed(1)
-						st = GroupStatsTests(prefs)
-						st.run(test, 'Two-sided', test.confIntervMethods[0], 0.95, profile)
-						st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
-						st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
-						out['%s/%s|random' % (key, testName)] = record(st.results)
-
-	# ---- multiple groups
-	for field in [groupField, groupField2]:
-		metadata.setActiveField(field, tree)
-		for parent, level in configs:
-			profile = tree.createMultiGroupProfile(list(tree.groupDict.keys()), parent, level, metadata, UNCLASSIFIED[1])
-			key = '%s/multi/%s|%s|%s' % (name, field, parent, level)
-			out[key + '/profile'] = {'features': clean(profile.getFeatures()), 'activeGroupNames': clean(profile.activeGroupNames),
-				'activeSamplesInGroups': clean(profile.activeSamplesInGroups),
-				'counts': clean([profile.getActiveFeatureCounts(f) for f in profile.getFeatures()]),
-				'parentCounts': clean([profile.getActiveParentCounts(f) for f in profile.getFeatures()]),
-				'proportions': clean([profile.getActiveFeatureProportions(f) for f in profile.getFeatures()])}
-			if (parent, level) != configs[0] and field != groupField:
-				continue
-			for testName in MULTI_TESTS:
-				test = load('stamp.plugins.multiGroups.statisticalTests.' + testName, testName)
-				for esName in MULTI_ES:
-					es = load('stamp.plugins.multiGroups.effectSizeFilters.' + esName, esName)
-					st = MultiGroupStatsTests(prefs)
-					st.run(test, es, profile)
-					for corrName in (CORRECTIONS if testName == 'ANOVA' else CORRECTIONS[:1]):
-						corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
-						st.results.performMultCompCorrection(corr)
-						st.results.filterFeatures(None, None, None)
-						k = '%s/%s|%s|%s' % (key, testName, esName, corrName)
-						out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
-						if corrName == 'NoCorrection':
-							for fname, args in {'p05': (0.05, None, None), 'eta01': (None, es, 0.1), 'p05_eta005': (0.05, es, 0.05)}.items():
-								st.results.filterFeatures(*args)
-								out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+				for testName in MULTI_TESTS:
+					test = load('stamp.plugins.multiGroups.statisticalTests.' + testName, testName)
+					for esName in MULTI_ES:
+						es = load('stamp.plugins.multiGroups.effectSizeFilters.' + esName, esName)
+						st = MultiGroupStatsTests(prefs)
+						st.run(test, es, profile)
+						for corrName in (CORRECTIONS if testName == 'ANOVA' else CORRECTIONS[:1]):
+							corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
+							st.results.performMultCompCorrection(corr)
 							st.results.filterFeatures(None, None, None)
-					if testName == 'ANOVA' and (parent, level) == configs[0]:
-						features = [row[0] for row in st.results.data[:3]]
-						for phName in POSTHOC:
-							ph = load('stamp.plugins.multiGroups.postHoc.' + phName, phName)
-							for feature in features:
-								for coverage in [0.95, 0.99]:
-									st.runPostHocTest(ph, profile, feature, coverage)
-									r = st.results.postHocResults
-									out['%s/posthoc/%s|%s|%s' % (key, phName, feature, coverage)] = clean({
-										'pValues': r.pValues, 'effectSizes': r.effectSizes, 'lowerCIs': r.lowerCIs, 'upperCIs': r.upperCIs,
-										'labels': r.labels, 'note': r.note, 'alpha': r.alpha})
+							k = '%s/%s|%s|%s' % (key, testName, esName, corrName)
+							out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
+							if corrName == 'NoCorrection':
+								for fname, args in {'p05': (0.05, None, None), 'eta01': (None, es, 0.1), 'p05_eta005': (0.05, es, 0.05)}.items():
+									st.results.filterFeatures(*args)
+									out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+								st.results.filterFeatures(None, None, None)
+						if testName == 'ANOVA' and (parent, level) == configs[0]:
+							features = [row[0] for row in st.results.data[:3]]
+							if min(len(g) for g in profile.activeSamplesInGroups) < 2:
+								# upstream post-hoc tests crash on groups with a single sample (NaN degrees of freedom)
+								out[key + '/posthoc'] = {'skipped': 'a group has fewer than 2 samples (upstream crashes)'}
+								continue
+							for phName in POSTHOC:
+								ph = load('stamp.plugins.multiGroups.postHoc.' + phName, phName)
+								for feature in features:
+									for coverage in [0.95, 0.99]:
+										st.runPostHocTest(ph, profile, feature, coverage)
+										r = st.results.postHocResults
+										out['%s/posthoc/%s|%s|%s' % (key, phName, feature, coverage)] = clean({
+											'pValues': r.pValues, 'effectSizes': r.effectSizes, 'lowerCIs': r.lowerCIs, 'upperCIs': r.upperCIs,
+											'labels': r.labels, 'note': r.note, 'alpha': r.alpha})
+	return out
 
-with open(outPath, 'w') as f:
-	json.dump(out, f, sort_keys=True, indent=0, separators=(',', ':'))
-print('wrote', outPath, len(out), 'entries')
+def main():
+	upstream = os.path.abspath(sys.argv[1])
+	soilDir = os.path.abspath(sys.argv[2])
+	outPath = sys.argv[3]
+	out = generate(upstream, soilDir)
+	with open(outPath, 'w') as f:
+		json.dump(out, f, sort_keys=True, indent=0, separators=(',', ':'))
+	print('wrote', outPath, len(out), 'entries')
+
+if __name__ == '__main__':
+	main()
