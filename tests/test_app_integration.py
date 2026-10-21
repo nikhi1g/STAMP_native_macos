@@ -157,3 +157,22 @@ def test_statistical_tests_switch_in_every_mode(mainWindow, monkeypatch, STAMP, 
 	for name in sorted(mainWindow.postHocTestDict):
 		activate(ui.cboPostHocTest, name)
 	assert messageBoxes.calls == []
+
+
+def test_whites_test_with_small_groups_in_the_gui(mainWindow, monkeypatch, STAMP, messageBoxes):
+	# Skirball demo: 7 vs 7 samples takes White's "fewer than 8 samples" branch through the real
+	# QProgressDialog. Upstream 088aacd crashed here (progress.setMaximum(list)); the shipped
+	# Windows 2.1.3 build (v2.1.3 tag) did not, and the port follows the shipped build.
+	ui = mainWindow.ui
+	skirball = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'skirball')
+	loadData(mainWindow, monkeypatch, STAMP, os.path.join(skirball, 'skirball_phylum.spf'), os.path.join(skirball, 'skirball_metadata.tsv'))
+	ui.tabWidgetProperties.setCurrentIndex(ui.tabWidgetProperties.indexOf(ui.tabTwoGroups))
+	mainWindow.groupLegendDlg.findChildren(QtWidgets.QComboBox)[0].setCurrentText('Burn status')
+	activate(ui.cboGroup1, 'Burned')
+	activate(ui.cboGroup2, 'Unburned')
+	mainWindow.preferences['Replicates'] = 50
+	activate(ui.cboGroupStatTests, "White's non-parametric t-test")
+	results = mainWindow.groupStatsTest.results
+	assert results.test == "White's non-parametric t-test"
+	assert len(results.data) == 37
+	assert messageBoxes.calls == []

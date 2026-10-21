@@ -145,8 +145,6 @@ def permuted_statistics(propGroup1, propGroup2, seqGroup1, seqGroup2, T_statisti
 		
 	if progress != None:
 		progress.setLabelText('Calculating p-values...')
-		progress.setValue(0)
-		progressIndex = 0
 
 	# calculate each pvalue using the null ts
 	pValuesOneSided = []
@@ -159,9 +157,10 @@ def permuted_statistics(propGroup1, propGroup2, seqGroup1, seqGroup2, T_statisti
 		for r in range(0, numFeatures): 
 			if sum(seqGroup1[r]) >= n1 or sum(seqGroup2[r]) >= n2:
 				highFreqIndices.append(r)
-				
-		if progress != None:
-			progress.setMaximum(highFreqIndices)
+			else:
+				if progress != None and progress != 'Verbose':
+					progressIndex += 1
+					progress.setValue(progressIndex)
 			  
 		#now for each feature
 		pValuesOneSided = [0.0] * numFeatures
@@ -187,20 +186,16 @@ def permuted_statistics(propGroup1, propGroup2, seqGroup1, seqGroup2, T_statisti
 			pValuesOneSided[hfIndex] = (1.0/(B*len(highFreqIndices))) * oneTailed
 			pValuesTwoSided[hfIndex] = (1.0/(B*len(highFreqIndices))) * twoTailed
 	else:
-		print('blah')
-		if progress != None:
-			progress.setMaximum(numFeatures*B)
-			
 		for r in range(0, numFeatures): 
+			if progress != None and progress != 'Verbose':
+				progressIndex += 1
+				progress.setValue(progressIndex)
+				if progress.wasCanceled():
+						return [], [], [], []
+					
 			oneTailed = 0
 			twoTailed = 0
 			for i in range(0, B):
-				if progress != None and progress != 'Verbose':
-					progressIndex += 1
-					progress.setValue(progressIndex)
-					if progress.wasCanceled():
-							return [], [], [], []
-						
 				if permuted_ttests[i][r] > T_statistics[r]:
 					oneTailed += 1
 				if abs(permuted_ttests[i][r]) > abs(T_statistics[r]):

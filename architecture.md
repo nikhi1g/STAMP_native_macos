@@ -168,3 +168,15 @@ STAMP_native_macos/
   (no Windows build available here); the extended error bar clips its right-hand
   "p-value (corrected)" label for 7-character p-values, which follows upstream's fixed 0.75 in
   label margin.
+- Comparison with the user's Windows build (2026-10-20): the STAMP.exe installed under Porting
+  Kit (`~/Applications/STAMP.app`, launched by `~/Desktop/STAMP.command`) ships its Python
+  modules; all 167 are bytecode-identical to upstream's `v2.1.3` tag (checked with Python 2.7 in
+  the reference image), and its 114 plugin `.py` files match the tag. Upstream changed only four
+  files between that tag and the imported commit 088aacd: `STAMP.py` (+`svg.fonttype = 'none'`:
+  SVG text stays text), both `HeatmapPlot.py` (minimum cell size guard; column labels rotated
+  'vertical' instead of 270) and `White.py` (a 2016 "initial attempt" at a progress dialog that
+  calls `setMaximum(list)` and crashes in the GUI whenever a group has fewer than 8 samples).
+  The port keeps 088aacd's three author fixes and uses the v2.1.3 `White.py` (statistics
+  identical; only progress handling differs), so White's test works on small groups exactly as in
+  the user's exe (`test_whites_test_with_small_groups_in_the_gui`, 7 vs 7 Skirball samples).
+  The 13 statistical defects in Findings are therefore all present in the user's exe as well.
