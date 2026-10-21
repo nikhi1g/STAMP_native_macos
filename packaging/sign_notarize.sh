@@ -33,10 +33,21 @@ BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
 NAME=STAMP-$VERSION-$BUILD
 
 echo "signing nested code (inside-out)..."
-# every Mach-O file except the main executable, deepest first
-while IFS= read -r f; do
-  file -b "$f" | grep -q "Mach-O" && sign "$f" >/dev/null
-done < <(find "$APP/Contents" -type f ! -path "$APP/Contents/MacOS/STAMP" | awk '{print gsub("/","/"), $0}' | sort -rn | cut -d' ' -f2-)
+# every Mach-O file except the main executable: independent of each other, so 8 at a time
+# (each signature waits on Apple's timestamp server)
+python3 - "$APP" <<'PY' | xargs -0 -n 4 -P 8 codesign --force --options runtime --timestamp --sign "$SIGN_ID" 2>&1 | grep -v "replacing existing signature" || true
+import os, sys
+app = sys.argv[1]; main = os.path.join(app, 'Contents', 'MacOS', 'STAMP')
+MAGIC = {b'\xcf\xfa\xed\xfe', b'\xce\xfa\xed\xfe', b'\xca\xfe\xba\xbe', b'\xbe\xba\xfe\xca'}
+for root, dirs, files in os.walk(os.path.join(app, 'Contents')):
+    for f in files:
+        p = os.path.join(root, f)
+        if p == main or os.path.islink(p):
+            continue
+        with open(p, 'rb') as fh:
+            if fh.read(4) in MAGIC:
+                sys.stdout.write(p + '\0')
+PY
 # framework / nested bundles, deepest first
 while IFS= read -r b; do sign "$b" >/dev/null; done \
   < <(find "$APP/Contents" -type d \( -name "*.framework" -o -name "*.app" \) | awk '{print gsub("/","/"), $0}' | sort -rn | cut -d' ' -f2-)
@@ -58,15 +69,6 @@ ditto -c -k --norsrc --noextattr --noacl --keepParent "$APP" "dist/$NAME.zip"
 unzip -l "dist/$NAME.zip" | grep -q '/\._' && { echo "zip contains AppleDouble entries" >&2; exit 1; }
 shasum -a 256 "dist/$NAME.zip" | tee "dist/$NAME.zip.sha256"
 
-packaging/make_dmg.sh
-DMG=dist/$NAME.dmg
-mv -f dist/STAMP.dmg "$DMG"
-codesign --force --timestamp --sign "$SIGN_ID" "$DMG"
-if [ -z "${SKIP_NOTARIZE:-}" ]; then
-  notarize "$DMG"
-  xcrun stapler staple "$DMG"
-  xcrun stapler validate "$DMG"
-  spctl -a -t open --context context:primary-signature -vv "$DMG"
-fi
-shasum -a 256 "$DMG" | tee "$DMG.sha256"
-echo "done: $PWD/$DMG"
+# DMG (secondary download): skipped with NO_DMG=1 (packaging/release.sh builds it in parallel with the pkg)
+[ -n "${NO_DMG:-}" ] || packaging/make_release_dmg.sh
+echo "done: $PWD/dist/$NAME.zip"
