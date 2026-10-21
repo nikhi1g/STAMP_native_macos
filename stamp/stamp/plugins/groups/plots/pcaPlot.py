@@ -24,7 +24,7 @@
 import sys
 import math
 
-from PyQt4 import QtGui
+from PyQt6 import QtGui, QtWidgets
 
 from stamp.plugins.groups.AbstractGroupPlotPlugin import AbstractGroupPlotPlugin, TestWindow, ConfigureDialog
 from stamp.plugins.groups.plots.configGUI.pcaPlotUI import Ui_PcaPlotDialog
@@ -51,15 +51,15 @@ class pcaPlot(AbstractGroupPlotPlugin):
 		self.bPlotFeaturesIndividually = False
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value('group: ' + self.name + '/height', 6.0).toDouble()[0]
-		self.bFixedPixelsPerUnitDistance = self.settings.value('group: ' + self.name + '/fixed pixels per unit distance', True).toBool()
-		self.markerSize = self.settings.value('group: ' + self.name + '/marker size', 30).toInt()[0]
-		self.bRotateLabels = self.settings.value('group: ' + self.name + '/rotate pc3 labels', True).toBool()
-		self.bShowPC1vsPC3 = self.settings.value('group: ' + self.name + '/showPC1vsPC3', True).toBool()
-		self.bShowPC3vsPC2 = self.settings.value('group: ' + self.name + '/showPC3vsPC2', True).toBool()
-		self.legendPos = self.settings.value('group: ' + self.name + '/legend position', -1).toInt()[0]
-		self.bUniqueShapes = self.settings.value('group: ' + self.name + '/unique shapes', True).toBool()
+		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value('group: ' + self.name + '/height', 6.0, type=float)
+		self.bFixedPixelsPerUnitDistance = self.settings.value('group: ' + self.name + '/fixed pixels per unit distance', True, type=bool)
+		self.markerSize = self.settings.value('group: ' + self.name + '/marker size', 30, type=int)
+		self.bRotateLabels = self.settings.value('group: ' + self.name + '/rotate pc3 labels', True, type=bool)
+		self.bShowPC1vsPC3 = self.settings.value('group: ' + self.name + '/showPC1vsPC3', True, type=bool)
+		self.bShowPC3vsPC2 = self.settings.value('group: ' + self.name + '/showPC3vsPC2', True, type=bool)
+		self.legendPos = self.settings.value('group: ' + self.name + '/legend position', -1, type=int)
+		self.bUniqueShapes = self.settings.value('group: ' + self.name + '/unique shapes', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -328,13 +328,9 @@ class pcaPlot(AbstractGroupPlotPlugin):
 
 		# *** Prettify scatter plot
 		for axes in scatterPlotAxes:
-			for a in axes.yaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+			axes.tick_params(axis='y', which='major', left=True, right=False)
 					
-			for a in axes.xaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+			axes.tick_params(axis='x', which='major', bottom=True, top=False)
 				
 			for line in axes.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -403,7 +399,7 @@ class pcaPlot(AbstractGroupPlotPlugin):
 			
 		configDlg.ui.chkUniqueShapes.setChecked(self.bUniqueShapes)
 
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.figWidth = configDlg.ui.spinFigWidth.value()
 			self.figHeight = configDlg.ui.spinFigHeight.value()
 			
@@ -445,7 +441,7 @@ class pcaPlot(AbstractGroupPlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ProfileScatterPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
