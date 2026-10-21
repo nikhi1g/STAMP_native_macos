@@ -52,7 +52,10 @@ if [ -z "${SKIP_NOTARIZE:-}" ]; then
 fi
 
 # main download: zip of the stapled app (Safari unzips it; the app offers to move itself to Applications)
-ditto -c -k --keepParent "$APP" "dist/$NAME.zip"
+# no AppleDouble (._*) entries: Archive Utility would write them into framework roots and break the seal
+xattr -cr "$APP"
+ditto -c -k --norsrc --noextattr --noacl --keepParent "$APP" "dist/$NAME.zip"
+unzip -l "dist/$NAME.zip" | grep -q '/\._' && { echo "zip contains AppleDouble entries" >&2; exit 1; }
 shasum -a 256 "dist/$NAME.zip" | tee "dist/$NAME.zip.sha256"
 
 packaging/make_dmg.sh

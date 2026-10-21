@@ -212,7 +212,6 @@ def offerMove(settings, parent=None):
 	box.setIcon(QtWidgets.QMessageBox.Icon.Question)
 	box.setWindowTitle('STAMP')
 	box.setText('Move STAMP to your Applications folder?')
-	box.setInformativeText('STAMP will then open from Applications, and the downloaded copy will be moved to the Trash.')
 	moveButton = box.addButton('Move to Applications', QtWidgets.QMessageBox.ButtonRole.AcceptRole)
 	box.addButton('Not Now', QtWidgets.QMessageBox.ButtonRole.RejectRole)
 	box.setDefaultButton(moveButton)
