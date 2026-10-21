@@ -23,9 +23,9 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.scatterPlotUI import Ui_ScatterPlotDialog
 
 from stamp.plugins.PlotEventHandler import PlotEventHandler
@@ -52,14 +52,14 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		self.type = 'Exploratory'
 
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value(self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value(self.name + '/height', 7.0).toDouble()[0]
-		self.bShowCIs = self.settings.value(self.name + '/show CIs', True).toBool()
-		self.numBins = self.settings.value(self.name + '/bins', 30).toInt()[0]
-		self.histogramSize = self.settings.value(self.name + '/bin size', 0.5).toDouble()[0]
-		self.bShowHistograms = self.settings.value(self.name + '/show histograms', True).toBool()
-		self.markerSize = self.settings.value(self.name + '/marker size', 20).toInt()[0]
-		self.bShowR2 = self.settings.value(self.name + '/show R2', True).toBool()
+		self.figWidth = self.settings.value(self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value(self.name + '/height', 7.0, type=float)
+		self.bShowCIs = self.settings.value(self.name + '/show CIs', True, type=bool)
+		self.numBins = self.settings.value(self.name + '/bins', 30, type=int)
+		self.histogramSize = self.settings.value(self.name + '/bin size', 0.5, type=float)
+		self.bShowHistograms = self.settings.value(self.name + '/show histograms', True, type=bool)
+		self.markerSize = self.settings.value(self.name + '/marker size', 20, type=int)
+		self.bShowR2 = self.settings.value(self.name + '/show R2', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -71,18 +71,19 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		self.bShowHistograms = plotToCopy.bShowHistograms
 		self.markerSize = plotToCopy.markerSize
 		
+	@classicStyle
 	def plot(self, profile, statsResults):
 		if len(profile.profileDict) <= 1:
 			self.emptyAxis()
 			return
 
 		if len(profile.profileDict) > 10000:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			reply = QtGui.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(profile.profileDict)) + ' features. ' +
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			reply = QtWidgets.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(profile.profileDict)) + ' features. ' +
 																		'It may take several seconds to generate this plot. Exploring the data at a higher hierarchy level is recommended. ' + 
-																		'Do you wish to continue?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-			QtGui.QApplication.instance().restoreOverrideCursor()
-			if reply == QtGui.QMessageBox.No:
+																		'Do you wish to continue?', QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
+			if reply == QtWidgets.QMessageBox.StandardButton.No:
 				self.emptyAxis()	
 				return
 						
@@ -241,12 +242,12 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		# plot histograms
 		if not self.bShowHistograms:
 			for a in axesScatter.yaxis.majorTicks:
-					a.tick1On=True
-					a.tick2On=False
+					a.tick1line.set_visible(True)
+					a.tick2line.set_visible(False)
 				
 			for a in axesScatter.xaxis.majorTicks:
-					a.tick1On=True
-					a.tick2On=False
+					a.tick1line.set_visible(True)
+					a.tick2line.set_visible(False)
 					
 			for line in axesScatter.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -277,12 +278,12 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 
 				# *** Prettify histogram plot
 				for a in axesTopHistogram.yaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+						a.tick1line.set_visible(True)
+						a.tick2line.set_visible(False)
 					
 				for a in axesTopHistogram.xaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+						a.tick1line.set_visible(True)
+						a.tick2line.set_visible(False)
 						
 				for line in axesTopHistogram.yaxis.get_ticklines(): 
 					line.set_color(axesColour)
@@ -297,12 +298,12 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 							spine.set_color(axesColour)
 
 				for a in axesRightHistogram.yaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+						a.tick1line.set_visible(True)
+						a.tick2line.set_visible(False)
 					
 				for a in axesRightHistogram.xaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+						a.tick1line.set_visible(True)
+						a.tick2line.set_visible(False)
 						
 				for line in axesRightHistogram.yaxis.get_ticklines(): 
 					line.set_color(axesColour)
@@ -338,7 +339,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		
 		configDlg.ui.chkShowR2.setChecked(self.bShowR2)
 				
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.figWidth = configDlg.ui.spinFigWidth.value()
 			self.figHeight = configDlg.ui.spinFigHeight.value()
 			
@@ -364,7 +365,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ScatterPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

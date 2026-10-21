@@ -23,10 +23,10 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 import numpy as np
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.profileBarPlotUI import Ui_ProfileBarPlotDialog
 
 from stamp.metagenomics.stats.CI.WilsonCI import WilsonCI
@@ -46,17 +46,17 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		self.type = 'Exploratory'
 
 		self.settings = preferences['Settings']
-		self.figColWidth = self.settings.value(self.name + '/column width', 0.25).toDouble()[0]
-		self.figHeight = self.settings.value(self.name + '/height', 6.0).toDouble()[0]
-		self.fieldToPlot = self.settings.value(self.name + '/field to plot', 'Proportion of sequences (%)').toString()
-		self.legendPos = self.settings.value(self.name + '/legend position', 0).toInt()[0]
-		self.bShowCIs = self.settings.value(self.name + '/show cis', True).toBool()
-		self.endCapSize = self.settings.value(self.name + '/end cap size', 0).toInt()[0]
-		self.numFeaturesToShow = self.settings.value(self.name + '/features to show', 50).toInt()[0]
-		self.barWidth = self.settings.value(self.name + '/bar width (%)', 80).toDouble()[0]
-		self.bShowPvalue = self.settings.value(self.name + '/show p-value', True).toBool()
-		self.pValueThreshold = self.settings.value(self.name + '/p-value threshold', 0.05).toDouble()[0]
-		self.bOnlyActiveFeatures = self.settings.value(self.name + '/only active features', True).toBool()
+		self.figColWidth = self.settings.value(self.name + '/column width', 0.25, type=float)
+		self.figHeight = self.settings.value(self.name + '/height', 6.0, type=float)
+		self.fieldToPlot = self.settings.value(self.name + '/field to plot', 'Proportion of sequences (%)', type=str)
+		self.legendPos = self.settings.value(self.name + '/legend position', 0, type=int)
+		self.bShowCIs = self.settings.value(self.name + '/show cis', True, type=bool)
+		self.endCapSize = self.settings.value(self.name + '/end cap size', 0, type=int)
+		self.numFeaturesToShow = self.settings.value(self.name + '/features to show', 50, type=int)
+		self.barWidth = self.settings.value(self.name + '/bar width (%)', 80, type=float)
+		self.bShowPvalue = self.settings.value(self.name + '/show p-value', True, type=bool)
+		self.pValueThreshold = self.settings.value(self.name + '/p-value threshold', 0.05, type=float)
+		self.bOnlyActiveFeatures = self.settings.value(self.name + '/only active features', True, type=bool)
 
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -71,6 +71,7 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		self.pValueThreshold = plotToCopy.pValueThreshold
 		self.bOnlyActiveFeatures = plotToCopy.bOnlyActiveFeatures
 		
+	@classicStyle
 	def plot(self, profile, statsResults):
 		if len(profile.profileDict) <= 0:
 			self.emptyAxis()
@@ -179,10 +180,10 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		figWidth = self.figColWidth*len(features)
 		figHeight = self.figHeight
 		if figWidth > 256 or figHeight > 256:
-				QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+				QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
 				self.emptyAxis()	
-				QtGui.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
-				QtGui.QApplication.instance().restoreOverrideCursor()
+				QtWidgets.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.', QtWidgets.QMessageBox.StandardButton.Ok)
+				QtWidgets.QApplication.instance().restoreOverrideCursor()
 				return
 
 		self.fig.set_size_inches(figWidth, figHeight)
@@ -204,11 +205,11 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		barWidth = (colWidth*(self.barWidth/100.0)) / 2
 		
 		if self.bShowCIs == True:
-			rects1 = axesBar.bar(np.arange(len(features))*colWidth, field1, width=barWidth, color=profile1Colour, yerr=confInter1, ecolor='black', capsize=self.endCapSize)	
-			rects2 = axesBar.bar(np.arange(len(features))*colWidth + barWidth, field2, width=barWidth, color=profile2Colour, yerr=confInter2, ecolor='black', capsize=self.endCapSize)
+			rects1 = axesBar.bar(np.arange(len(features))*colWidth, field1, width=barWidth, color=profile1Colour, yerr=confInter1, ecolor='black', capsize=self.endCapSize, align='edge')	
+			rects2 = axesBar.bar(np.arange(len(features))*colWidth + barWidth, field2, width=barWidth, color=profile2Colour, yerr=confInter2, ecolor='black', capsize=self.endCapSize, align='edge')
 		else:
-			rects1 = axesBar.bar(np.arange(len(features))*colWidth, field1, width=barWidth, color=profile1Colour)
-			rects2 = axesBar.bar(np.arange(len(features))*colWidth + barWidth, field2, width=barWidth, color=profile2Colour)
+			rects1 = axesBar.bar(np.arange(len(features))*colWidth, field1, width=barWidth, color=profile1Colour, align='edge')
+			rects2 = axesBar.bar(np.arange(len(features))*colWidth + barWidth, field2, width=barWidth, color=profile2Colour, align='edge')
 
 		axesBar.set_xticks(np.arange(len(features))*colWidth + barWidth)
 		axesBar.set_xlim([0, (len(features)-1.0)*colWidth + 2*barWidth + 0.1])
@@ -241,12 +242,12 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 					label.set_color('red')
 
 		for a in axesBar.yaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+			a.tick1line.set_visible(False)
+			a.tick2line.set_visible(False)
 				
 		for a in axesBar.xaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+			a.tick1line.set_visible(False)
+			a.tick2line.set_visible(False)
 			
 		for loc, spine in axesBar.spines.items():
 			if loc in ['right','top']:
@@ -295,12 +296,12 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		else:
 			configDlg.ui.radioLegendPosNone.setChecked(True)
 			
-		configDlg.ui.spinBarWidth.setValue(self.barWidth)
+		configDlg.ui.spinBarWidth.setValue(int(self.barWidth))	# QSpinBox: PyQt6 rejects float
 		
 		configDlg.ui.chkShowPvalue.setChecked(self.bShowPvalue)
 		configDlg.ui.spinPvalueThreshold.setValue(self.pValueThreshold)
 		
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.fieldToPlot = str(configDlg.ui.cboFieldToPlot.currentText())
 			
 			self.figColWidth = configDlg.ui.spinFigColWidth.value()
@@ -351,10 +352,10 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ProfileBarPlots)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
 
 				

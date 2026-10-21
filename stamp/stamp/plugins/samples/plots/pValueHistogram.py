@@ -23,11 +23,11 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.pValueHistogramUI import Ui_pValueHistogramDialog
 
 class pValueHistogram(AbstractSamplePlotPlugin):
@@ -42,17 +42,17 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 		self.type = 'Statistical'
 		
 		self.settings = preferences['Settings']		
-		self.figWidth = self.settings.value(self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value(self.name + '/height', 7.0).toDouble()[0]
-		self.fieldToPlot = self.settings.value(self.name + '/field to plot', 'p-values (corrected)').toString()
-		self.yAxisLogScale = self.settings.value(self.name + '/histogram log scale', False).toBool()
-		self.binWidth = self.settings.value(self.name + '/histogram bin width', 0.01).toDouble()[0]
-		self.bShowInset = self.settings.value(self.name + '/show inset', True).toBool()
-		self.insetWidth = self.settings.value(self.name + '/inset width %', 60.0).toDouble()[0]
-		self.insetHeight = self.settings.value(self.name + '/inset height %', 60.0).toDouble()[0]
-		self.insetLogScale = self.settings.value(self.name + '/inset log scale', False).toBool()
-		self.insetBinWidth = self.settings.value(self.name + '/inset bin width', 0.002).toDouble()[0]
-		self.xLimit = self.settings.value(self.name + '/inset x-axis limit', 0.05).toDouble()[0]
+		self.figWidth = self.settings.value(self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value(self.name + '/height', 7.0, type=float)
+		self.fieldToPlot = self.settings.value(self.name + '/field to plot', 'p-values (corrected)', type=str)
+		self.yAxisLogScale = self.settings.value(self.name + '/histogram log scale', False, type=bool)
+		self.binWidth = self.settings.value(self.name + '/histogram bin width', 0.01, type=float)
+		self.bShowInset = self.settings.value(self.name + '/show inset', True, type=bool)
+		self.insetWidth = self.settings.value(self.name + '/inset width %', 60.0, type=float)
+		self.insetHeight = self.settings.value(self.name + '/inset height %', 60.0, type=float)
+		self.insetLogScale = self.settings.value(self.name + '/inset log scale', False, type=bool)
+		self.insetBinWidth = self.settings.value(self.name + '/inset bin width', 0.002, type=float)
+		self.xLimit = self.settings.value(self.name + '/inset x-axis limit', 0.05, type=float)
 
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -68,6 +68,7 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 		self.xLimit = plotToCopy.xLimit
 		self.insetLogScale = plotToCopy.insetLogScale
 		
+	@classicStyle
 	def plot(self, profile, statsResults):
 		if len(statsResults.activeData) <= 0:
 			self.emptyAxis()			
@@ -109,12 +110,12 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 
 		# *** Prettify plot	 
 		for a in axesHist.yaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 				
 		for a in axesHist.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 			
 		for line in axesHist.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -147,12 +148,12 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 			
 			# *** Prettify inset	 
 			for a in axins.yaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+				a.tick1line.set_visible(True)
+				a.tick2line.set_visible(False)
 					
 			for a in axins.xaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+				a.tick1line.set_visible(True)
+				a.tick2line.set_visible(False)
 				
 			for line in axins.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -174,7 +175,7 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 		
 		self.configDlg = ConfigureDialog(Ui_pValueHistogramDialog)
 		
-		self.connect(self.configDlg.ui.btnXmax, QtCore.SIGNAL('clicked()'), self.setXaxisMax)
+		self.configDlg.ui.btnXmax.clicked.connect(self.setXaxisMax)
 		
 		self.configDlg.ui.cboFieldToPlot.setCurrentIndex(self.configDlg.ui.cboFieldToPlot.findText(self.fieldToPlot))
 		
@@ -191,7 +192,7 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 		self.configDlg.ui.spinXlimit.setValue(self.xLimit)
 		self.configDlg.ui.chkInsetLogScale.setChecked(self.insetLogScale)
 		
-		if self.configDlg.exec_() == QtGui.QDialog.Accepted:		 
+		if self.configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:		 
 			self.figWidth = self.configDlg.ui.spinFigWidth.value()
 			self.figHeight = self.configDlg.ui.spinFigHeight.value()
 
@@ -231,10 +232,10 @@ class pValueHistogram(AbstractSamplePlotPlugin):
 		self.configDlg.ui.spinXlimit.setValue(max(data))
 
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(pValueHistogram)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
 
 				

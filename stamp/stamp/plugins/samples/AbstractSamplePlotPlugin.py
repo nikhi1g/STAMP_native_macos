@@ -23,14 +23,40 @@
 #=======================================================================
 
 import time
+import functools
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
+import matplotlib
+import matplotlib.style
 
 import numpy as np
+
+def classicRcParams():
+	'''
+	matplotlib's bundled 'classic' style, i.e. the matplotlib 1.x defaults upstream STAMP
+	was drawn with (inward ticks on all sides, no axes margins, round-number autoscaling,
+	'bgrcmyk' colour cycle, black patch edges, 20 pt^2 scatter markers, errorbar cap size 3,
+	square legend frame, ...), minus any parameter the application has already changed from
+	matplotlib's defaults (STAMP.py sets 8 pt fonts and svg.fonttype), so those still win.
+	'''
+	classic = matplotlib.style.library['classic']
+	return dict((k, v) for k, v in classic.items() if matplotlib.rcParams[k] == matplotlib.rcParamsDefault[k])
+
+def classicStyle(method):
+	'''Run a plotting method with classicRcParams() in effect.'''
+	# ponytail: applied per call (plot/emptyAxis/savePlot); limit: an idle redraw outside
+	# these calls reads current rcParams for anything matplotlib resolves lazily at draw
+	# time; trigger: visual drift after a resize; upgrade: apply classicRcParams() once
+	# app-wide, before STAMP.py sets its own rcParams.
+	@functools.wraps(method)
+	def wrapper(*args, **kwargs):
+		with matplotlib.rc_context(classicRcParams()):
+			return method(*args, **kwargs)
+	return wrapper
 
 class AbstractSamplePlotPlugin(FigureCanvas):
 	'''
@@ -39,14 +65,15 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 	def __init__(self, preferences, parent=None):	
 		self.preferences = preferences
 		
-		self.fig = Figure(facecolor='white', dpi=96)
+		with matplotlib.rc_context(classicRcParams()):
+			self.fig = Figure(facecolor='white', dpi=96)
 		
 		FigureCanvas.__init__(self, self.fig)
 		
 		self.setParent(parent)
 		FigureCanvas.setSizePolicy(self,
-														 QtGui.QSizePolicy.Fixed,
-														 QtGui.QSizePolicy.Fixed)
+														 QtWidgets.QSizePolicy.Policy.Fixed,
+														 QtWidgets.QSizePolicy.Policy.Fixed)
 		FigureCanvas.updateGeometry(self)
 		
 		self.cid = None
@@ -66,6 +93,7 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 	def configure(self, profile, statsResults):
 		pass
 	
+	@classicStyle
 	def savePlot(self, filename, dpi=300):
 		format = filename[filename.rfind('.')+1:len(filename)]
 		if format in ['png', 'pdf', 'ps', 'eps','svg']:			
@@ -93,14 +121,14 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 		bboxes = []
 		for label in xText:
 			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)
 		xLabelBounds = mtransforms.Bbox.union(bboxes)
 		
 		bboxes = []
 		for label in yText:
 			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		yLabelBounds = mtransforms.Bbox.union(bboxes)			
 		
@@ -118,7 +146,7 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 		bboxes = []
 		for label in xLabels:
 			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		xLabelBounds = mtransforms.Bbox.union(bboxes)		
 		
@@ -136,7 +164,7 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 		bboxes = []
 		for label in yLabels:
 			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		yLabelBounds = mtransforms.Bbox.union(bboxes)		
 		
@@ -144,6 +172,7 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 		
 		return yLabelBounds
 
+	@classicStyle
 	def emptyAxis(self):
 		self.fig.clear()	 
 		self.fig.set_size_inches(6,4)	
@@ -178,9 +207,9 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 				
 		return formattedLabels
 	
-class ConfigureDialog(QtGui.QDialog):
+class ConfigureDialog(QtWidgets.QDialog):
 	def __init__(self, configDialogUI, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QDialog.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = configDialogUI()
@@ -189,11 +218,11 @@ class ConfigureDialog(QtGui.QDialog):
 		self.centerWindow()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
 	
-class TestWindow(QtGui.QMainWindow):
+class TestWindow(QtWidgets.QMainWindow):
 	'''
 	Simple Qt window for testing plots.
 	'''
@@ -204,13 +233,13 @@ class TestWindow(QtGui.QMainWindow):
 		PlotClass - a class object (not instance) inherited from AbstractPlotPlugin
 		'''
 		
-		QtGui.QMainWindow.__init__(self)
-		self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		QtWidgets.QMainWindow.__init__(self)
+		self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
 		self.setWindowTitle("Test Window")
 		
-		self.main_widget = QtGui.QWidget(self)
+		self.main_widget = QtWidgets.QWidget(self)
 		
-		layout = QtGui.QVBoxLayout(self.main_widget)
+		layout = QtWidgets.QVBoxLayout(self.main_widget)
 		testPlot = PlotClass(self.main_widget)
 		
 		if statsResults != '':

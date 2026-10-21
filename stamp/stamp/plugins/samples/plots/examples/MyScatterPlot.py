@@ -23,7 +23,7 @@
 
 import sys
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 
 
 class MyScatterPlot(AbstractSamplePlotPlugin):
@@ -42,6 +42,7 @@ class MyScatterPlot(AbstractSamplePlotPlugin):
 		self.sampleName1 = ''
 		self.sampleName2 = ''
 		
+	@classicStyle
 	def plot(self, profile, statsResults):
 		# Colour of plot elements
 		profile1Colour = str(self.preferences['Sample 1 colour'].name())

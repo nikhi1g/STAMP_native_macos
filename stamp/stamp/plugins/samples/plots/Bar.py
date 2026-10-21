@@ -23,12 +23,12 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 import numpy as np
 
 from matplotlib.ticker import ScalarFormatter
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.barUI import Ui_BarConfigDialog
 from stamp.metagenomics import TableHelper
 
@@ -44,11 +44,11 @@ class Bar(AbstractSamplePlotPlugin):
 		self.type = 'Statistical'
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value(self.name + '/width', 7.0).toDouble()[0]
-		self.figHeightPerRow = self.settings.value(self.name +  '/row height', 0.2).toDouble()[0]
-		self.fieldToPlot = self.settings.value(self.name +  '/field to plot', 'Proportion of sequences (%)').toString()
-		self.legendPos = self.settings.value(self.name +  '/legend position', 0).toInt()[0]
-		self.bSortFeatures = self.settings.value(self.name +  '/sort values', True).toBool()
+		self.figWidth = self.settings.value(self.name + '/width', 7.0, type=float)
+		self.figHeightPerRow = self.settings.value(self.name +  '/row height', 0.2, type=float)
+		self.fieldToPlot = self.settings.value(self.name +  '/field to plot', 'Proportion of sequences (%)', type=str)
+		self.legendPos = self.settings.value(self.name +  '/legend position', 0, type=int)
+		self.bSortFeatures = self.settings.value(self.name +  '/sort values', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -58,6 +58,7 @@ class Bar(AbstractSamplePlotPlugin):
 		self.legendPos = plotToCopy.legendPos
 		self.bSortFeatures = plotToCopy.bSortFeatures
 		
+	@classicStyle
 	def plot(self, profile, statsResults):
 		if len(statsResults.activeData) <= 0:
 			self.emptyAxis()
@@ -65,12 +66,12 @@ class Bar(AbstractSamplePlotPlugin):
 		
 		features = statsResults.getColumn('Features')
 		if len(features) > 200:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			reply = QtGui.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(features)) + ' features. ' +
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			reply = QtWidgets.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(features)) + ' features. ' +
 																		'It may take several seconds to generate this plot. We recommend filtering your profile first. ' + 
-																		'Do you wish to continue?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-			QtGui.QApplication.instance().restoreOverrideCursor()
-			if reply == QtGui.QMessageBox.No:
+																		'Do you wish to continue?', QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
+			if reply == QtWidgets.QMessageBox.StandardButton.No:
 				self.emptyAxis()
 				return
 
@@ -177,12 +178,12 @@ class Bar(AbstractSamplePlotPlugin):
 				field2 = np.log10(field2)
 		
 		if field2 == None:
-			rects1 = axesBar.barh(np.arange(len(features)), field1, height=barHeight)	
+			rects1 = axesBar.barh(np.arange(len(features)), field1, height=barHeight, align='edge')	
 			axesBar.set_yticks(np.arange(len(features)) + 0.5*barHeight)		
 			axesBar.set_ylim([0, len(features)-1.0 + barHeight + 0.1])			
 		elif field2 != None:
-			rects2 = axesBar.barh(np.arange(len(features)), field2, height=barHeight, color=profile2Colour)	
-			rects1 = axesBar.barh(np.arange(len(features))+barHeight, field1, height=barHeight, color=profile1Colour)
+			rects2 = axesBar.barh(np.arange(len(features)), field2, height=barHeight, color=profile2Colour, align='edge')	
+			rects1 = axesBar.barh(np.arange(len(features))+barHeight, field1, height=barHeight, color=profile1Colour, align='edge')
 			axesBar.set_yticks(np.arange(len(features)) + barHeight)		
 			axesBar.set_ylim([0, len(features)-1.0 + 2*barHeight + 0.1])			 
 				
@@ -204,12 +205,12 @@ class Bar(AbstractSamplePlotPlugin):
 					label.set_color('red')
 			
 		for a in axesBar.yaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+			a.tick1line.set_visible(False)
+			a.tick2line.set_visible(False)
 				
 		for a in axesBar.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 			
 		for line in axesBar.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -264,7 +265,7 @@ class Bar(AbstractSamplePlotPlugin):
 		else:
 			configDlg.ui.radioLegendPosNone.setChecked(True)
 		
-		if configDlg.exec_() == QtGui.QDialog.Accepted:
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			self.fieldToPlot = str(configDlg.ui.cboFieldToPlot.currentText())
 			self.bSortFeatures = configDlg.ui.chkSort.isChecked()
 			self.figWidth = configDlg.ui.spinFigWidth.value()
@@ -298,10 +299,10 @@ class Bar(AbstractSamplePlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(Bar)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
 
 				

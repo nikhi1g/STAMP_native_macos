@@ -21,14 +21,14 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
 import sys
 import math
 import numpy as np
-from mpl_toolkits.axes_grid import make_axes_locatable, Size
+from mpl_toolkits.axes_grid1 import make_axes_locatable, Size
 
-from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.samples.AbstractSamplePlotPlugin import AbstractSamplePlotPlugin, TestWindow, ConfigureDialog, classicStyle
 from stamp.plugins.samples.plots.configGUI.extendedErrorBarUI import Ui_ExtendedErrorBarDialog
 from stamp.metagenomics import TableHelper
 
@@ -45,18 +45,18 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		self.type = 'Statistical'
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value(self.name + '/width', 7.0).toDouble()[0]
-		self.figHeightPerRow = self.settings.value(self.name + '/row height', 0.2).toDouble()[0]
-		self.sortingField = self.settings.value(self.name + '/field', 'p-values').toString()
-		self.bShowBarPlot = self.settings.value(self.name + '/sequences subplot', True).toBool()
-		self.bShowPValueLabels = self.settings.value(self.name + '/p-value labels', True).toBool()
-		self.bShowCorrectedPvalues = self.settings.value(self.name + '/show corrected p-values', True).toBool()
-		self.bCustomLimits = self.settings.value(self.name + '/use custom limits', False).toBool()
-		self.minX = self.settings.value(self.name + '/minimum', 0.0).toDouble()[0]
-		self.maxX = self.settings.value(self.name + '/maximum', 1.0).toDouble()[0]
-		self.markerSize = self.settings.value(self.name + '/marker size', 30).toInt()[0]
-		self.percentageOrSeqCount = self.settings.value(self.name + '/percentage or seq count', 'Proportion (%)').toString()
-		self.legendPos = self.settings.value(self.name + '/legend position', -1).toInt()[0]
+		self.figWidth = self.settings.value(self.name + '/width', 7.0, type=float)
+		self.figHeightPerRow = self.settings.value(self.name + '/row height', 0.2, type=float)
+		self.sortingField = self.settings.value(self.name + '/field', 'p-values', type=str)
+		self.bShowBarPlot = self.settings.value(self.name + '/sequences subplot', True, type=bool)
+		self.bShowPValueLabels = self.settings.value(self.name + '/p-value labels', True, type=bool)
+		self.bShowCorrectedPvalues = self.settings.value(self.name + '/show corrected p-values', True, type=bool)
+		self.bCustomLimits = self.settings.value(self.name + '/use custom limits', False, type=bool)
+		self.minX = self.settings.value(self.name + '/minimum', 0.0, type=float)
+		self.maxX = self.settings.value(self.name + '/maximum', 1.0, type=float)
+		self.markerSize = self.settings.value(self.name + '/marker size', 30, type=int)
+		self.percentageOrSeqCount = self.settings.value(self.name + '/percentage or seq count', 'Proportion (%)', type=str)
+		self.legendPos = self.settings.value(self.name + '/legend position', -1, type=int)
 
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -80,6 +80,7 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		self.percentageOrSeqCount = plotToCopy.percentageOrSeqCount
 		self.legendPos = plotToCopy.legendPos
 	
+	@classicStyle
 	def plot(self, profile, statsResults):
 		# *** Check if there is sufficient data to generate the plot
 		if len(statsResults.activeData) <= 0:
@@ -88,12 +89,12 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		
 		features = statsResults.getColumn('Features')
 		if len(features) > 200:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			reply = QtGui.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(features)) + ' features. ' +
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			reply = QtWidgets.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(features)) + ' features. ' +
 																		'It may take several seconds to generate this plot. We recommend filtering your profile first. ' + 
-																		'Do you wish to continue?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-			QtGui.QApplication.instance().restoreOverrideCursor()
-			if reply == QtGui.QMessageBox.No:
+																		'Do you wish to continue?', QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No, QtWidgets.QMessageBox.StandardButton.No)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
+			if reply == QtWidgets.QMessageBox.StandardButton.No:
 				self.emptyAxis()	
 				return
 
@@ -197,10 +198,10 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		self.imageWidth = self.figWidth
 		self.imageHeight = plotHeight	+ heightBottomLabels + heightTopLabels
 		if self.imageWidth > 256 or self.imageHeight > 256:
-				QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+				QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
 				self.emptyAxis()	
-				reply = QtGui.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
-				QtGui.QApplication.instance().restoreOverrideCursor()
+				reply = QtWidgets.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.', QtWidgets.QMessageBox.StandardButton.Ok)
+				QtWidgets.QApplication.instance().restoreOverrideCursor()
 				return
 		
 		self.fig.set_size_inches(self.imageWidth, self.imageHeight)	
@@ -248,8 +249,8 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 			
 			if self.percentageOrSeqCount == 'Proportion (%)':
 				# plot percentage
-				axNumSeq.barh(np.arange(len(features))+0.0, percentage1, height = 0.3, color=profile1Colour, zorder=10, ecolor='black')
-				axNumSeq.barh(np.arange(len(features))-0.3, percentage2, height = 0.3, color=profile2Colour, zorder=10, ecolor='black')
+				axNumSeq.barh(np.arange(len(features))+0.0, percentage1, height = 0.3, color=profile1Colour, zorder=10, ecolor='black', align='edge')
+				axNumSeq.barh(np.arange(len(features))-0.3, percentage2, height = 0.3, color=profile2Colour, zorder=10, ecolor='black', align='edge')
 				for value in np.arange(-0.5, len(features)-1, 2):
 					axNumSeq.axhspan(value, value+1, facecolor=highlightColor,edgecolor='none',zorder=1)
 				
@@ -261,8 +262,8 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 				axNumSeq.set_xticklabels(['0.0', maxPercentageStr])
 			else:
 				# plot sequence count
-				axNumSeq.barh(np.arange(len(features))+0.0, seqs1, height = 0.3, color=profile1Colour, zorder=10, ecolor='black')
-				axNumSeq.barh(np.arange(len(features))-0.3, seqs2, height = 0.3, color=profile2Colour, zorder=10, ecolor='black')
+				axNumSeq.barh(np.arange(len(features))+0.0, seqs1, height = 0.3, color=profile1Colour, zorder=10, ecolor='black', align='edge')
+				axNumSeq.barh(np.arange(len(features))-0.3, seqs2, height = 0.3, color=profile2Colour, zorder=10, ecolor='black', align='edge')
 				for value in np.arange(-0.5, len(features)-1, 2):
 					axNumSeq.axhspan(value, value+1, facecolor=highlightColor,edgecolor='none',zorder=1)
 				
@@ -281,12 +282,12 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 					label.set_color('red')
 					
 			for a in axNumSeq.yaxis.majorTicks:
-				a.tick1On=False
-				a.tick2On=False
+				a.tick1line.set_visible(False)
+				a.tick2line.set_visible(False)
 					
 			for a in axNumSeq.xaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+				a.tick1line.set_visible(True)
+				a.tick2line.set_visible(False)
 				
 			for line in axNumSeq.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -339,12 +340,12 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 				a.set_visible(False)
 				
 		for a in axErrorbar.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+			a.tick1line.set_visible(True)
+			a.tick2line.set_visible(False)
 				
 		for a in axErrorbar.yaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+			a.tick1line.set_visible(False)
+			a.tick2line.set_visible(False)
 			
 		for line in axErrorbar.yaxis.get_ticklines(): 
 			line.set_visible(False)
@@ -361,14 +362,16 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		# *** Show p-values on right of last plot
 		if self.bShowPValueLabels == True:
 			axRight = lastAxes.twinx()
+			for line in lastAxes.yaxis.get_ticklines(): # matplotlib 3: twinx() re-shows left tick lines hidden above
+				line.set_visible(False)
 			axRight.set_yticks(np.arange(len(pValueLabels)))
 			axRight.set_yticklabels(pValueLabels)
 			axRight.set_ylim([-1, len(pValueLabels)])
 			axRight.set_ylabel(pValueTitle)
 			
 			for a in axRight.yaxis.majorTicks:
-				a.tick1On=False
-				a.tick2On=False
+				a.tick1line.set_visible(False)
+				a.tick2line.set_visible(False)
 				
 			for loc, spine in axRight.spines.items():
 				spine.set_color('none') 
@@ -424,8 +427,8 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		else:
 			self.configDlg.ui.radioLegendPosNone.setChecked(True)
 			
-		if self.configDlg.exec_() == QtGui.QDialog.Accepted:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		if self.configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 			
 			self.sortingField = str(self.configDlg.ui.cboSortingField.currentText())
 			
@@ -471,10 +474,10 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 
 			self.plot(profile, statsResults)		
 			
-			QtGui.QApplication.instance().restoreOverrideCursor()	 
+			QtWidgets.QApplication.instance().restoreOverrideCursor()	 
 
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ExtendedErrorBar)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
