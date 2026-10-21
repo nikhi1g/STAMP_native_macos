@@ -21,7 +21,7 @@ ditto "$APP" "$STAGE/root/Applications/STAMP.app"
 pkgbuild --analyze --root "$STAGE/root" "$STAGE/comp.plist" >/dev/null
 plutil -replace 0.BundleIsRelocatable -bool NO "$STAGE/comp.plist"
 pkgbuild --root "$STAGE/root" --component-plist "$STAGE/comp.plist" --identifier "$ID.pkg" \
-  --version "$VERSION.$BUILD" --install-location / "$STAGE/STAMP-component.pkg"
+  --version "$VERSION" --install-location / "$STAGE/STAMP-component.pkg"
 cat > "$STAGE/distribution.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
@@ -35,7 +35,7 @@ cat > "$STAGE/distribution.xml" <<XML
   <pkg-ref id="$ID.pkg" version="$VERSION" onConclusion="none">STAMP-component.pkg</pkg-ref>
 </installer-gui-script>
 XML
-PKG=dist/STAMP-$VERSION-$BUILD${STAMP_NAME_SUFFIX:-}.pkg
+PKG=dist/STAMP-$VERSION${STAMP_NAME_SUFFIX:-}.pkg
 productbuild --distribution "$STAGE/distribution.xml" --package-path "$STAGE" --sign "$INST_ID" --timestamp "$PKG"
 pkgutil --check-signature "$PKG"
 if [ -z "${SKIP_NOTARIZE:-}" ]; then

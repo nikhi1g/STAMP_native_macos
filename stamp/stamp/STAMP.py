@@ -23,7 +23,20 @@ __author__ = 'Donovan Parks'
 __copyright__ = 'Copyright 2013'
 __credits__ = ['Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '2.1.3'
+__version__ = '2.1.3'	# upstream STAMP release this port is based on
+
+def appVersion():
+	"""Version of this build: the macOS app bundle's semantic version when frozen, else upstream's."""
+	if getattr(sys, 'frozen', False):
+		index = sys.executable.find('.app/Contents/')
+		if index != -1:
+			import plistlib
+			try:
+				with open(sys.executable[:index + len('.app')] + '/Contents/Info.plist', 'rb') as f:
+					return plistlib.load(f).get('CFBundleShortVersionString', __version__)
+			except (OSError, ValueError):
+				pass
+	return __version__
 __date__ = 'June 26, 2015'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
@@ -1750,7 +1763,7 @@ class MainWindow(QtWidgets.QMainWindow):
 				'%s\n'
 				'%s\n'
 				'%s\n\n'
-				'%s' % ('Donovan Parks and Robert Beiko', __version__, __date__, 'Program icon by Caihua (http://commons.wikimedia.org/wiki/File:Fairytale_colors.png)'))
+				'%s' % ('Donovan Parks and Robert Beiko', appVersion(), __date__, 'Program icon by Caihua (http://commons.wikimedia.org/wiki/File:Fairytale_colors.png)'))
 
 	def closeEvent(self, event):
 		# save size and location of main window and all dock widgets
@@ -1794,7 +1807,7 @@ def setupLogging():
 		handlers.append(logging.FileHandler(logPath, encoding='utf-8'))
 	logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', handlers=handlers)
 	logging.info('STAMP %s starting; python %s; frozen=%s; executable=%s; main dir=%s',
-		__version__, sys.version.split()[0], bool(getattr(sys, 'frozen', False)), sys.executable, getMainDir())
+		appVersion(), sys.version.split()[0], bool(getattr(sys, 'frozen', False)), sys.executable, getMainDir())
 	logging.info('Qt %s, PyQt %s, matplotlib %s (cache dir %s), numpy %s, scipy %s; log file %s',
 		QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR, mpl.__version__, mpl.get_cachedir(), numpy.__version__, scipy.__version__, logPath)
 	return logPath

@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 APP=dist/STAMP.app
 VERSION=$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)
 BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
-NAME=STAMP-$VERSION-$BUILD${STAMP_NAME_SUFFIX:-}
+NAME=STAMP-$VERSION${STAMP_NAME_SUFFIX:-}
 [ -f "dist/$NAME.zip" ] || { echo "dist/$NAME.zip missing; run packaging/sign_notarize.sh" >&2; exit 1; }
 NOTES=packaging/release_notes/$NAME.md
 [ -f "$NOTES" ] || { echo "write $NOTES first" >&2; exit 1; }

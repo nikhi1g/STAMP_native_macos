@@ -71,8 +71,9 @@ app = BUNDLE(
     info_plist={
         'CFBundleName': 'STAMP',
         'CFBundleDisplayName': 'STAMP',
-        'CFBundleShortVersionString': '2.1.3',
-        'CFBundleVersion': os.environ.get('STAMP_BUILD', '3'),
+        # semantic version (major.minor.patch), the only version users see and Sparkle compares
+        'CFBundleShortVersionString': os.environ.get('STAMP_VERSION', '2.1.4'),
+        'CFBundleVersion': os.environ.get('STAMP_VERSION', '2.1.4'),
         'LSMinimumSystemVersion': '12.0',
         'NSHighResolutionCapable': True,
         # light window chrome: the content uses Qt's Windows style with its light palette, so
@@ -80,14 +81,14 @@ app = BUNDLE(
         'NSRequiresAquaSystemAppearance': True,
         'NSHumanReadableCopyright': 'Copyright 2011-2015 Donovan Parks. GPL-3.0.',
         'LSApplicationCategoryType': 'public.app-category.education',
-        # Sparkle 2 updates (stamp/updater.py): checks at launch and every 24 h; updates download in the
-        # background and install when STAMP quits (user decision 2026-10-21: minimal, functional updates)
+        # Sparkle 2 updates (stamp/updater.py): checks at launch and every 24 h; Sparkle's standard prompt
+        # (Install Update / Remind Me Later); never installs without the user (user decision 2026-10-21)
         # STAMP_FEED_BASE: production by default; staging test builds point elsewhere (packaging/release.sh)
         'SUFeedURL': os.environ.get('STAMP_FEED_BASE', 'https://www.mimg.io/download/stamp').rstrip('/') + '/appcast.xml',
         'SUPublicEDKey': 'nOwgOufhSeJ6cDfZ1D4GQvUWHTILG+EJ9IqPiwSkfWY=',
         'SUEnableAutomaticChecks': True,
         'SUScheduledCheckInterval': 86400,
-        'SUAutomaticallyUpdate': True,
-        'SUAllowsAutomaticUpdates': True,
+        'SUAutomaticallyUpdate': False,
+        'SUAllowsAutomaticUpdates': False,
     },
 )

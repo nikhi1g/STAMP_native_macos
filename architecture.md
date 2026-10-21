@@ -86,15 +86,16 @@ STAMP_native_macos/
   /Applications (or ~/Applications when the account cannot write /Applications), relaunch from there,
   move the downloaded app and zip (or ejected dmg) to the Trash. Not Now: a second alert, "Remind you
   next time STAMP opens?" with Remind Me / Don't Remind Me.
-- Updates: Sparkle 2 inside the app, so users never return to the download page. Checks at launch and
-  every 24 h; updates download in the background and install when STAMP quits (automatic install on;
-  user decision 2026-10-21: updates are rare, minimal and functional only). Where STAMP cannot be
-  replaced without a password, Sparkle falls back to its native prompt. "Check for Updates..." menu item and an
-  update section in Preferences.
+- Updates: Sparkle 2 with its standard native prompt, so users never return to the download page.
+  Checks at launch and every 24 h; "A new version of STAMP is available" with Install Update /
+  Remind Me Later (asked again at the next 24 h check). Never installs without the user. Manual
+  check: Help > Check for Updates... and the Dock icon's menu ("You're up to date" when nothing newer).
+- Versions: semantic major.minor.patch, the single version users see and Sparkle compares
+  (CFBundleShortVersionString = CFBundleVersion). 2.1.3 is upstream STAMP (and the first DMG, which has
+  no updater); the first release with the updater is 2.1.4.
 - Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
-  zip at `https://www.mimg.io/download/stamp/<version>-<build>/STAMP-<version>-<build>.zip` (immutable), signed with
-  Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). Build numbers (CFBundleVersion)
-  only increase; Sparkle compares them. `packaging/make_appcast.sh` adds each release to
+  zip at `https://www.mimg.io/download/stamp/<version>/STAMP-<version>.zip` (immutable), signed with
+  Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). `packaging/make_appcast.sh` adds each release to
   `packaging/appcast/appcast.xml`.
 - Future, not yet scheduled: update popup and Preferences styled like STAMP's own (Windows-look) UI.
 

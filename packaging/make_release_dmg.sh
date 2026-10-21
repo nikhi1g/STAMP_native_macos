@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 SIGN_ID=${SIGN_ID:-"Developer ID Application: NIKHIL GUPTA (G7955Z5DNB)"}
 PROFILE=${NOTARY_PROFILE:-STAMP}
 APP=dist/STAMP.app; LOGDIR=build/signing; mkdir -p "$LOGDIR"
-NAME=STAMP-$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)-$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)${STAMP_NAME_SUFFIX:-}
+NAME=STAMP-$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)${STAMP_NAME_SUFFIX:-}
 packaging/make_dmg.sh
 DMG=dist/$NAME.dmg
 mv -f dist/STAMP.dmg "$DMG"

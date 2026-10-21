@@ -2,10 +2,10 @@
 # Author: Nikhil Gupta (macOS port)
 #
 # In-app updates via Sparkle 2 (bundled as Contents/Frameworks/Sparkle.framework).
-# Feed, public EdDSA key and defaults (automatic checks on, automatic install off, every 24 h)
-# are in the app's Info.plist (SUFeedURL, SUPublicEDKey, SUEnableAutomaticChecks,
-# SUAutomaticallyUpdate, SUScheduledCheckInterval). Sparkle shows its own native macOS UI:
-# "Install and Relaunch / Later / Skip This Version".
+# Feed, public EdDSA key and defaults are in the app's Info.plist (SUFeedURL, SUPublicEDKey,
+# SUEnableAutomaticChecks, SUScheduledCheckInterval = 24 h, no automatic install). Sparkle's standard
+# native prompt: "A new version of STAMP is available" with Install Update / Remind Me Later.
+# Manual check: Help > Check for Updates... and the Dock icon's menu.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,4 +78,11 @@ def addMenuAction(mainWindow):
 	menu.insertAction(actions[0] if actions else None, action)
 	if actions:
 		menu.insertSeparator(actions[0])
+	# right-click (or Control-click) on STAMP's Dock icon
+	from PyQt6 import QtWidgets
+	dockMenu = QtWidgets.QMenu(mainWindow)
+	dockMenu.addAction('Check for Updates...', checkForUpdates)
+	if hasattr(dockMenu, 'setAsDockMenu'):
+		dockMenu.setAsDockMenu()
+	mainWindow._dockMenu = dockMenu	# keep a reference
 	return action
