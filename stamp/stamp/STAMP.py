@@ -1881,6 +1881,12 @@ def main():
 		# the style's own light palette, not the macOS (possibly dark) system palette, as on Windows
 		QtWidgets.QApplication.setPalette(QtWidgets.QApplication.style().standardPalette())
 
+		# macOS app bundle: finish a previous "Move to Applications", or offer one
+		from stamp import installLocation
+		installLocation.cleanupAfterMove()
+		if installLocation.offerMove(settings):
+			sys.exit(0)
+
 		if(False):  # profile code
 			import cProfile
 			cProfile.run('mainWindow = MainWindow(preferences)', 'profile.txt')

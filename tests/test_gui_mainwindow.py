@@ -508,6 +508,10 @@ def test_main_preferences_style_and_working_directory(STAMP, monkeypatch, isolat
 	monkeypatch.setattr(sys, 'path', list(sys.path))
 	monkeypatch.setattr(sys, 'argv', ['STAMP'])
 	monkeypatch.setattr(sys, 'excepthook', sys.excepthook)
+	# the first-run "Move to Applications" prompt is covered in test_install_location.py; here it is modal
+	from stamp import installLocation
+	monkeypatch.setattr(installLocation, 'cleanupAfterMove', lambda: None)
+	monkeypatch.setattr(installLocation, 'offerMove', lambda settings, parent=None: False)
 	if frozen:
 		appDir = str(tmp_path / 'Applications')
 		monkeypatch.setattr(sys, 'frozen', True, raising=False)
