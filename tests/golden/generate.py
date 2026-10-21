@@ -68,6 +68,15 @@ def clean(v):
 		pass
 	return v
 
+def runFilter(results, args):
+	'''Apply filterFeatures; upstream raises ZeroDivisionError for the ratio-of-proportions filter when a
+	feature is absent from both groups (kept for parity), so the error type is recorded instead.'''
+	try:
+		results.filterFeatures(*args)
+	except Exception as exc:
+		return {'error': type(exc).__name__}
+	return {'active': clean(list(results.getActiveFeatures()))}
+
 def record(results, extra=None):
 	data, headings = results.tableData(False)
 	d = {'headings': clean(headings), 'rows': clean(data), 'active': clean(list(results.getActiveFeatures()))}
@@ -127,6 +136,7 @@ def generate(upstream, soilDir):
 							for coverage in ([0.95, 0.99] if (testName == 'Fishers' and ciName == 'NewcombeWilson') else [0.95]):
 								st = SampleStatsTests(prefs)
 								st.run(test, testType, ci, coverage, profile)
+								st.results.selectAllFeautres()  # as the app does before filtering
 								for corrName in (CORRECTIONS if testName == 'Fishers' and ciName == SAMPLE_CI[0] and testType == 'Two-sided' else CORRECTIONS[:1]):
 									corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
 									st.results.performMultCompCorrection(corr)
@@ -152,8 +162,7 @@ def generate(upstream, soilDir):
 											'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
 										}
 										for fname, args in filters.items():
-											st.results.filterFeatures(*args)
-											out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+											out[k + '/filter/' + fname] = runFilter(st.results, args)
 										st.results.setSelectedFeatures(sorted(profile.getFeatures())[:5])  # order-independent choice
 										st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
 										out[k + '/filter/selected5'] = {'active': clean(list(st.results.getActiveFeatures()))}
@@ -164,6 +173,7 @@ def generate(upstream, soilDir):
 					random.seed(1); numpy.random.seed(1)
 					st = SampleStatsTests(prefs)
 					st.run(test, 'Two-sided', ci, 0.95, profile)
+					st.results.selectAllFeautres()  # as the app does before filtering
 					st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
 					st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
 					out['%s/%s|random' % (key, testName)] = record(st.results)
@@ -197,6 +207,7 @@ def generate(upstream, soilDir):
 									continue
 								st = GroupStatsTests(prefs)
 								st.run(test, testType, test.confIntervMethods[0], coverage, profile)
+								st.results.selectAllFeautres()  # as the app does before filtering
 								for corrName in (CORRECTIONS if testType == 'Two-sided' and coverage == 0.95 else CORRECTIONS[:1]):
 									corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
 									st.results.performMultCompCorrection(corr)
@@ -219,8 +230,7 @@ def generate(upstream, soilDir):
 											'p05_dp05_AND_rp15': (0.05, None, None, None, None, None, None, es1, 0.5, 'AND', es2, 1.5),
 										}
 										for fname, args in filters.items():
-											st.results.filterFeatures(*args)
-											out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+											out[k + '/filter/' + fname] = runFilter(st.results, args)
 					if (parent, level) == configs[0] and g2 != '<All other samples>':
 						for testName in GROUP_TESTS_RANDOM:
 							test = load('stamp.plugins.groups.statisticalTests.' + testName, testName)
@@ -230,6 +240,7 @@ def generate(upstream, soilDir):
 							random.seed(1); numpy.random.seed(1)
 							st = GroupStatsTests(prefs)
 							st.run(test, 'Two-sided', test.confIntervMethods[0], 0.95, profile)
+							st.results.selectAllFeautres()  # as the app does before filtering
 							st.results.performMultCompCorrection(load('stamp.plugins.common.multipleComparisonCorrections.NoCorrection', 'NoCorrection'))
 							st.results.filterFeatures(None, None, None, None, None, None, None, None, None, 'OR', None, None)
 							out['%s/%s|random' % (key, testName)] = record(st.results)
@@ -253,6 +264,7 @@ def generate(upstream, soilDir):
 						es = load('stamp.plugins.multiGroups.effectSizeFilters.' + esName, esName)
 						st = MultiGroupStatsTests(prefs)
 						st.run(test, es, profile)
+						st.results.selectAllFeautres()  # as the app does before filtering
 						for corrName in (CORRECTIONS if testName == 'ANOVA' else CORRECTIONS[:1]):
 							corr = load('stamp.plugins.common.multipleComparisonCorrections.' + corrName, corrName)
 							st.results.performMultCompCorrection(corr)
@@ -261,8 +273,7 @@ def generate(upstream, soilDir):
 							out[k] = record(st.results, {'correctionInfo': clean(st.results.multCompCorrectionInfo)})
 							if corrName == 'NoCorrection':
 								for fname, args in {'p05': (0.05, None, None), 'eta01': (None, es, 0.1), 'p05_eta005': (0.05, es, 0.05)}.items():
-									st.results.filterFeatures(*args)
-									out[k + '/filter/' + fname] = {'active': clean(list(st.results.getActiveFeatures()))}
+									out[k + '/filter/' + fname] = runFilter(st.results, args)
 								st.results.filterFeatures(None, None, None)
 						if testName == 'ANOVA' and (parent, level) == configs[0]:
 							features = sorted(profile.getFeatures())[:3]  # order-independent choice (ties in p-value sort differ between interpreters)
