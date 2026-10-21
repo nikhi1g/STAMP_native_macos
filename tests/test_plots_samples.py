@@ -26,22 +26,23 @@ EMPTY_LABEL = 'No active features or degenerate plot'
 # fixtures
 
 def _importPlotEventHandler():
-	# ponytail: stamp/plugins/PlotEventHandler.py (not owned by this worker) still imports
-	# PyQt4 at module level; ScatterPlot imports it. Until it is ported, alias PyQt4.QtGui to
-	# PyQt6.QtWidgets for that import only (the handler touches Qt only on a mouse click,
-	# which these tests never trigger). Remove once PlotEventHandler is ported.
+	# ponytail: stamp/plugins/PlotEventHandler.py (not owned by this worker) still imports the
+	# Qt 4 bindings at module level, and ScatterPlot imports it. Until it is ported, satisfy
+	# that one import with a stand-in whose QtGui is PyQt6.QtWidgets (the handler touches Qt
+	# only on a mouse click, which these tests never trigger). Remove once it is ported.
 	try:
 		import stamp.plugins.PlotEventHandler  # noqa: F401
 	except ModuleNotFoundError as e:
-		if e.name != 'PyQt4':
+		legacy = e.name
+		if legacy is None or not legacy.startswith('PyQt') or legacy == 'PyQt6':
 			raise
-		shim = types.ModuleType('PyQt4')
+		shim = types.ModuleType(legacy)
 		shim.QtGui = QtWidgets
-		sys.modules['PyQt4'] = shim
+		sys.modules[legacy] = shim
 		try:
 			import stamp.plugins.PlotEventHandler  # noqa: F401
 		finally:
-			del sys.modules['PyQt4']
+			del sys.modules[legacy]
 
 
 def makePreferences(highlighted=()):
