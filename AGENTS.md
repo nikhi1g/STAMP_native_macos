@@ -56,6 +56,13 @@ the deployed revision.
 
 ## Git and scope
 
+**Identity (this repository):** `nikhi1g` is the only git and GitHub contributor. Author and
+committer are `nikhi1g <89803008+nikhi1g@users.noreply.github.com>`; if that account is not
+accessible, use `N1khilg` instead. No other names or emails, no personal email addresses, and
+no `Co-Authored-By` or other attribution trailers in commits, tags, PRs or release notes. Check
+`git config user.name` / `user.email` before committing.
+
+
 Check status before editing and at handoff. Preserve unrelated changes; never clean or revert
 them. Stage only your own reviewed paths and keep secrets and local state out. Commit when the
 project or user asks. Prefer recoverable removal; never rewrite history or delete unrelated
