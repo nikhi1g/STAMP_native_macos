@@ -121,8 +121,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 		# setup view STAMP properties menu item
 		self.ui.dockProperties.toggleViewAction().setShortcut("Ctrl+P")
-		self.ui.dockProperties.toggleViewAction().setToolTip("Show\hide properties window")
-		self.ui.dockProperties.toggleViewAction().setStatusTip("Show\hide properties window")
+		self.ui.dockProperties.toggleViewAction().setToolTip("Show\\hide properties window")
+		self.ui.dockProperties.toggleViewAction().setStatusTip("Show\\hide properties window")
 		self.ui.menuView.addAction(self.ui.dockProperties.toggleViewAction())
 
 		# setup group legend
@@ -134,8 +134,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.groupLegendDlg.setFloating(False)
 
 		self.groupLegendDlg.toggleViewAction().setShortcut("Ctrl+L")
-		self.groupLegendDlg.toggleViewAction().setToolTip("Show\hide group legend window")
-		self.groupLegendDlg.toggleViewAction().setStatusTip("Show\hide group legend window")
+		self.groupLegendDlg.toggleViewAction().setToolTip("Show\\hide group legend window")
+		self.groupLegendDlg.toggleViewAction().setStatusTip("Show\\hide group legend window")
 		self.ui.menuView.addAction(self.groupLegendDlg.toggleViewAction())
 
 		self.groupLegendDlg.legendItemChanged.connect(self.legendItemChanged)
@@ -151,8 +151,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.metadataDlg.setFloating(False)
 
 		self.metadataDlg.toggleViewAction().setShortcut("Ctrl+M")
-		self.metadataDlg.toggleViewAction().setToolTip("Show\hide metadata table")
-		self.metadataDlg.toggleViewAction().setStatusTip("Show\hide metadata table")
+		self.metadataDlg.toggleViewAction().setToolTip("Show\\hide metadata table")
+		self.metadataDlg.toggleViewAction().setStatusTip("Show\\hide metadata table")
 		self.ui.menuView.addAction(self.metadataDlg.toggleViewAction())
 
 		self.metadataDlg.activeSamplesChanged.connect(self.activeSamplesChanged)
@@ -220,8 +220,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.sampleTable.setFloating(True)
 
 		self.sampleTable.toggleViewAction().setShortcut("Ctrl+T")
-		self.sampleTable.toggleViewAction().setToolTip("Show\hide two sample statistical table")
-		self.sampleTable.toggleViewAction().setStatusTip("Show\hide two sample statistical table")
+		self.sampleTable.toggleViewAction().setToolTip("Show\\hide two sample statistical table")
+		self.sampleTable.toggleViewAction().setStatusTip("Show\\hide two sample statistical table")
 		self.ui.menuView.addAction(self.sampleTable.toggleViewAction())
 
 		# load plot plugins
@@ -311,8 +311,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.groupTable.setFloating(True)
 
 		self.groupTable.toggleViewAction().setShortcut("Ctrl+G")
-		self.groupTable.toggleViewAction().setToolTip("Show\hide two group statistical table")
-		self.groupTable.toggleViewAction().setStatusTip("Show\hide two group statistical table")
+		self.groupTable.toggleViewAction().setToolTip("Show\\hide two group statistical table")
+		self.groupTable.toggleViewAction().setStatusTip("Show\\hide two group statistical table")
 		self.ui.menuView.addAction(self.groupTable.toggleViewAction())
 
 		# load plot plugins
@@ -403,8 +403,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.multiGroupTable.setFloating(True)
 
 		self.multiGroupTable.toggleViewAction().setShortcut("Ctrl+M")
-		self.multiGroupTable.toggleViewAction().setToolTip("Show\hide multiple group statistical table")
-		self.multiGroupTable.toggleViewAction().setStatusTip("Show\hide multiple group statistical table")
+		self.multiGroupTable.toggleViewAction().setToolTip("Show\\hide multiple group statistical table")
+		self.multiGroupTable.toggleViewAction().setStatusTip("Show\\hide multiple group statistical table")
 		self.ui.menuView.addAction(self.multiGroupTable.toggleViewAction())
 
 		# load plot plugins
@@ -1842,6 +1842,8 @@ def main():
 			QtWidgets.QApplication.setStyle('Windows')
 		else:
 			QtWidgets.QApplication.setStyle('Fusion')
+		# the style's own light palette, not the macOS (possibly dark) system palette, as on Windows
+		QtWidgets.QApplication.setPalette(QtWidgets.QApplication.style().standardPalette())
 
 		if(False):  # profile code
 			import cProfile

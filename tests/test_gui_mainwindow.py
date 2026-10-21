@@ -195,18 +195,19 @@ def test_window_title_menus_and_shortcuts(mainWindow):
 	assert [a.text() for a in ui.menuSettings.actions()] == ['&Preferences...']
 	assert [a.text() for a in ui.menu_Help.actions()] == ['&About...']
 
-	viewMenu = [(a.text(), a.shortcut().toString()) for a in ui.menuView.actions() if not a.isSeparator()]
+	viewMenu = [(a.text(), a.shortcut().toString(QtGui.QKeySequence.SequenceFormat.PortableText)) for a in ui.menuView.actions() if not a.isSeparator()]
 
 	assert viewMenu == [('Send plot to &window', 'Ctrl+W'), ('Properties', 'Ctrl+P'),
 						('Group legend', 'Ctrl+L'), ('Metadata table', 'Ctrl+M'),
 						('Two sample statistics table', 'Ctrl+T'), ('Two group statistics table', 'Ctrl+G'),
 						('Multiple group statistics table', 'Ctrl+M')]
 
-	shortcuts = {a.objectName(): a.shortcut().toString() for a in (ui.mnuFileOpenProfile, ui.mnuFileSavePlot, ui.mnuFileExit, ui.mnuViewSendPlotToWindow)}
+	shortcuts = {a.objectName(): a.shortcut().toString(QtGui.QKeySequence.SequenceFormat.PortableText) for a in (ui.mnuFileOpenProfile, ui.mnuFileSavePlot, ui.mnuFileExit, ui.mnuViewSendPlotToWindow)}
 	assert shortcuts == {'mnuFileOpenProfile': 'Ctrl+O', 'mnuFileSavePlot': 'Ctrl+S', 'mnuFileExit': 'Ctrl+Q', 'mnuViewSendPlotToWindow': 'Ctrl+W'}
 	# Qt maps Ctrl to Command on macOS: the portable text stays 'Ctrl+O'
 	assert ui.mnuFileOpenProfile.shortcut() == QtGui.QKeySequence('Ctrl+O')
 
+	assert ui.dockProperties.toggleViewAction().toolTip() == 'Show\\hide properties window'
 	assert not ui.mnuFileOpenProfile.icon().isNull()
 	assert not mainWindow.windowIcon().isNull()
 
@@ -458,6 +459,7 @@ def test_except_hook_reports_error(STAMP, messageBoxes):
 
 class _FakeApp:
 	styles = []
+	palettes = []
 	instance = staticmethod(QtWidgets.QApplication.instance)	# pytest-qt keeps using the real application
 
 	def __init__(self, argv):
@@ -466,6 +468,14 @@ class _FakeApp:
 	@staticmethod
 	def setStyle(style):
 		_FakeApp.styles.append(style)
+
+	@staticmethod
+	def style():
+		return QtWidgets.QStyleFactory.create(_FakeApp.styles[-1])
+
+	@staticmethod
+	def setPalette(palette):
+		_FakeApp.palettes.append(palette)
 
 	def exec(self):
 		return 0
@@ -491,6 +501,7 @@ def test_main_preferences_style_and_working_directory(STAMP, monkeypatch, isolat
 
 	chdirs = []
 	_FakeApp.styles = []
+	_FakeApp.palettes = []
 	monkeypatch.setattr(QtWidgets, 'QApplication', _FakeApp)
 	monkeypatch.setattr(STAMP, 'MainWindow', FakeMainWindow)
 	monkeypatch.setattr(os, 'chdir', chdirs.append)
@@ -515,6 +526,7 @@ def test_main_preferences_style_and_working_directory(STAMP, monkeypatch, isolat
 	assert prefs['All other samples colour'].name() == '#123456'
 	assert prefs['Axes colour'].name() == '#7f7f7f'
 	assert _FakeApp.styles == ['Windows']
+	assert _FakeApp.palettes[-1] == QtWidgets.QStyleFactory.create('Windows').standardPalette()
 	assert sys.excepthook is STAMP.exceptHook
 	if frozen:
 		assert sys.path[0] == appDir + '/STAMP.app/Contents/Frameworks'
@@ -524,3 +536,67 @@ def test_main_preferences_style_and_working_directory(STAMP, monkeypatch, isolat
 		assert sys.path[0] == os.path.join(ROOT, 'stamp')
 		assert prefs['Last directory'] == ''
 		assert chdirs == [os.path.join(ROOT, 'stamp')]
+
+
+def test_highlight_colours_recalculation_and_dialog_actions(mainWindow, monkeypatch, STAMP, messageBoxes):
+	loadData(mainWindow, monkeypatch, STAMP)
+	ui = mainWindow.ui
+	activate(ui.cboProfileLevel, 'Genera')
+
+	# highlight all genera of one phylum
+	activate(ui.cboGroupHighlightHierarchy, 'Phyla')
+	phyla = comboItems(ui.cboGroupHighlightFeature)
+	assert phyla == sorted(phyla, key=str.lower) and len(phyla) > 1
+	activate(ui.cboGroupHighlightFeature, phyla[0])
+	highlighted = mainWindow.preferences['Highlighted group features']
+	assert highlighted and all(mainWindow.groupProfile.getHierarchy(f)[0] == phyla[0] for f in highlighted)
+	activate(ui.cboGroupHighlightHierarchy, 'None')
+	assert mainWindow.preferences['Highlighted group features'] == []
+
+	activate(ui.cboSampleHighlightHierarchy, 'Phyla')
+	assert mainWindow.preferences['Highlighted sample features']
+
+	# colour buttons
+	monkeypatch.setattr(QtWidgets.QColorDialog, 'getColor', staticmethod(lambda *a, **k: QtGui.QColor('#aabbcc')))
+	ui.btnSample1Colour.click()
+	assert mainWindow.preferences['Sample 1 colour'].name() == '#aabbcc'
+	assert 'rgb(170,187,204)' in ui.btnSample1Colour.styleSheet()
+	ui.btnGroup1Colour.click()
+	assert mainWindow.groupLegendDlg.groupColourDict[mainWindow.groupProfile.groupName1].name() == '#aabbcc'
+
+	# automatic recalculation off: statistics are not rerun until it is switched back on
+	mainWindow.btnAutoRecalculation.setChecked(False)
+	before = mainWindow.sampleStatsTest
+	activate(ui.cboSampleStatTests, "Fisher's exact test")
+	assert mainWindow.sampleStatsTest.results.data == before.results.data
+	mainWindow.btnAutoRecalculation.setChecked(True)
+	assert ui.cboSampleStatTests.currentText() == "Fisher's exact test"
+
+	# side-bar sections collapse and expand
+	ui.tabWidgetProperties.setCurrentIndex(ui.tabWidgetProperties.indexOf(ui.tabTwoGroups))
+	shown = ui.widgetGroupFilter.isVisible()
+	ui.btnGroupFilteringTab.click()
+	assert ui.widgetGroupFilter.isVisible() != shown
+	ui.btnGroupFilteringArrow.click()
+	assert ui.widgetGroupFilter.isVisible() == shown
+
+	# each File menu dialog opens (exec replaced so nothing blocks)
+	opened = []
+	for name in ('CreateProfileMgRastDlg', 'CreateProfileRITADlg', 'CreateProfileCoMetDlg', 'CreateProfileMothurDlg', 'CreateProfileBiomDlg', 'AssignCOGsDlg'):
+		monkeypatch.setattr(getattr(STAMP, name), 'exec', lambda dlg: opened.append(type(dlg).__name__) or 0)
+	for action in (ui.mnuFileMgRast, ui.mnuFileRITA, ui.mnuFileCoMet, ui.mnuFileMothur, ui.mnuFileBIOM, ui.mnuFileAppendCategoryCOG):
+		action.trigger()
+	assert opened == ['CreateProfileMgRastDlg', 'CreateProfileRITADlg', 'CreateProfileCoMetDlg', 'CreateProfileMothurDlg', 'CreateProfileBiomDlg', 'AssignCOGsDlg']
+
+	# select-features dialog and multiple-comparison info dialog from the side bar
+	monkeypatch.setattr(STAMP.SelectFeaturesDlg, 'exec', lambda dlg: QtWidgets.QDialog.DialogCode.Accepted)
+	ui.chkGroupSelectFeatures.setChecked(True)
+	ui.btnGroupSelectFeatures.click()
+	monkeypatch.setattr(STAMP.MultCompCorrectionInfoDlg, 'exec', lambda dlg: opened.append('info') or 0)
+	ui.btnGroupMultCompCorrectionInfo.click()
+	assert opened[-1] == 'info'
+
+	# configure the current plot
+	ui.btnGroupConfigurePlot.click()
+	assert mainWindow.groupPlot.currentPlot.calls[-1][0] == 'configure'
+	assert messageBoxes.calls == []
