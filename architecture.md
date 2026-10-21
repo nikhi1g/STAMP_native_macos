@@ -98,6 +98,11 @@ STAMP_native_macos/
   zip at `https://www.mimg.io/download/stamp/<version>/STAMP-<version>.zip` (immutable), signed with
   Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). `packaging/make_appcast.sh` adds each release to
   `packaging/appcast/<channel>/appcast.xml` (production, staging).
+- Channels: staging (`https://mimg-109bl-staging.gptminimal.workers.dev/download/stamp/`) and production
+  (`https://www.mimg.io/download/stamp/`) are separate feeds; each build has its channel's feed URL
+  built in and only ever updates within that channel. Students get production builds only. Testers
+  move a copy between channels by replacing the app with the other channel's download (user decision
+  2026-10-21: no bridge releases).
 - Future, not yet scheduled: update popup and Preferences styled like STAMP's own (Windows-look) UI.
 
 ## Plan
