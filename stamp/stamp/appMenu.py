@@ -50,4 +50,16 @@ def install(checkForUpdates):
 	updates.triggered.connect(checkForUpdates)
 	menu.addAction(about)
 	menu.addAction(updates)
+	# macOS 26 style: info icon next to About (Qt builds the native menu lazily, so set it once it exists)
+	from PyQt6 import QtCore
+	from stamp import macNative
+	def addIcons(attempt=0):
+		import logging
+		if macNative.setAppMenuItemSymbol('About STAMP', 'info.circle'):
+			logging.info('app menu: About STAMP icon set (attempt %d)', attempt)
+		elif attempt < 20:
+			QtCore.QTimer.singleShot(250, lambda: addIcons(attempt + 1))
+		else:
+			logging.warning('app menu: About STAMP item not found; no icon')
+	QtCore.QTimer.singleShot(0, addIcons)
 	return _menuBar

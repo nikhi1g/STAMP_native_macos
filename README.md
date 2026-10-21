@@ -71,8 +71,8 @@ in, black patch edges, cap size 3, round-number limits) around its own `plot()`.
 - `appMenu.py`: About STAMP (the standard macOS About panel) and Check for Updates in the
   application menu. Links go through stable `mimg.io` redirects so the repository can move
   without an app update.
-- `macNative.py`: a ~100-line `ctypes` bridge to the Objective-C runtime (`objc_msgSend`) for
-  `NSAlert`, `NSBundle` and the About panel, avoiding a PyObjC dependency.
+- `macNative.py`: a ~110-line `ctypes` bridge to the Objective-C runtime (`objc_msgSend`) for
+  `NSAlert`, `NSBundle`, the About panel and menu icons, avoiding a PyObjC dependency.
 
 ## How the port was done
 
