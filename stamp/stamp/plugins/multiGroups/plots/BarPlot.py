@@ -23,10 +23,10 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 import numpy as np
 
-from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog, mpl14Defaults
 from stamp.plugins.multiGroups.plots.configGUI.BarPlotUI import Ui_BarPlotDialog
 
 from stamp.metagenomics.stats.CI.WilsonCI import WilsonCI
@@ -43,12 +43,12 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		self.type = 'Exploratory'
 		
 		self.settings = preferences['Settings']
-		self.figColWidth = self.settings.value('multiple group: ' + self.name + '/column width', 0.2).toDouble()[0]
-		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 6.0).toDouble()[0]
-		self.fieldToPlot = self.settings.value('multiple group: ' + self.name + '/field to plot', 'Proportion of sequences (%)').toString()
-		self.bShowAverages = self.settings.value('multiple group: ' + self.name + '/show averages', True).toBool()
-		self.legendPos = self.settings.value('multiple group: ' + self.name + '/legend position', -1).toInt()[0]
-		self.bShowPvalue = self.settings.value('multiple group: ' + self.name + '/show p-value', True).toBool()
+		self.figColWidth = self.settings.value('multiple group: ' + self.name + '/column width', 0.2, type=float)
+		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 6.0, type=float)
+		self.fieldToPlot = self.settings.value('multiple group: ' + self.name + '/field to plot', 'Proportion of sequences (%)', type=str)
+		self.bShowAverages = self.settings.value('multiple group: ' + self.name + '/show averages', True, type=bool)
+		self.legendPos = self.settings.value('multiple group: ' + self.name + '/legend position', -1, type=int)
+		self.bShowPvalue = self.settings.value('multiple group: ' + self.name + '/show p-value', True, type=bool)
 
 	def mirrorProperties(self, plotToCopy):
 		super(BarPlot, self).mirrorProperties(plotToCopy)
@@ -62,6 +62,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		
 		self.bShowPvalue = plotToCopy.bShowPvalue
 		
+	@mpl14Defaults
 	def plot(self, profile, statsResults):
 		if len(profile.profileDict) <= 0 or self.preferences['Selected multiple group feature'] == '':
 			self.emptyAxis()
@@ -104,10 +105,10 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		figWidth = self.figColWidth*len(sampleNames)
 		figHeight = self.figHeight
 		if figWidth > 256 or figHeight > 256:
-				QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+				QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
 				self.emptyAxis()	
-				QtGui.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
-				QtGui.QApplication.instance().restoreOverrideCursor()
+				QtWidgets.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
+				QtWidgets.QApplication.instance().restoreOverrideCursor()
 				return
 
 		self.fig.set_size_inches(figWidth, figHeight)
@@ -141,7 +142,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		theRects = []
 		start = 0
 		for i in range(0, len(data)):
-			rects = axesBar.bar(np.arange(len(data[i]))*colWidth + start*colWidth, data[i], width=barWidth, color=colours[i], zorder=5)
+			rects = axesBar.bar(np.arange(len(data[i]))*colWidth + start*colWidth, data[i], width=barWidth, color=colours[i], zorder=5, align='edge')
 			theRects.append(rects[0])
 			start += len(data[i])
 
@@ -178,13 +179,9 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		for label in axesBar.get_xticklabels():
 			label.set_rotation(90)
 
-		for a in axesBar.yaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+		axesBar.yaxis.set_tick_params(which='major', tick1On=False, tick2On=False)
 				
-		for a in axesBar.xaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+		axesBar.xaxis.set_tick_params(which='major', tick1On=False, tick2On=False)
 			
 		for line in axesBar.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -231,7 +228,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 			
 		configDlg.ui.chkShowPvalue.setChecked(self.bShowPvalue)
 		
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.fieldToPlot = str(configDlg.ui.cboFieldToPlot.currentText())
 			
 			self.figColWidth = configDlg.ui.spinFigColWidth.value()
@@ -269,10 +266,10 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ProfileBarPlots)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
 
 
 				

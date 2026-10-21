@@ -21,7 +21,7 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
 import sys
 import math
@@ -29,9 +29,9 @@ import operator
 import numpy as np
 
 from matplotlib.font_manager import FontProperties
-from mpl_toolkits.axes_grid import make_axes_locatable, Size
+from mpl_toolkits.axes_grid1 import make_axes_locatable, Size
 
-from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog, mpl14Defaults
 from stamp.plugins.multiGroups.plots.configGUI.PostHocPlotUI import Ui_PostHocPlotDialog
 from stamp.metagenomics import TableHelper
 
@@ -48,18 +48,18 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		self.bRunPostHocTest = True
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeightPerRow = self.settings.value('multiple group: ' + self.name + '/row height', 0.2).toDouble()[0]
-		self.sortingField = self.settings.value('multiple group: ' + self.name + '/field', 'p-values').toString()
-		self.bShowBarPlot = self.settings.value('multiple group: ' + self.name + '/sequences subplot', True).toBool()
-		self.bShowPValueLabels = self.settings.value('multiple group: ' + self.name + '/p-value labels', True).toBool()
-		self.bCustomLimits = self.settings.value('multiple group: ' + self.name + '/use custom limits', False).toBool()
-		self.minX = self.settings.value('multiple group: ' + self.name + '/minimum', 0.0).toDouble()[0]
-		self.maxX = self.settings.value('multiple group: ' + self.name + '/maximum', 1.0).toDouble()[0]
-		self.markerSize = self.settings.value('multiple group: ' + self.name + '/marker size', 30).toInt()[0]
-		self.bShowStdDev = self.settings.value('multiple group: ' + self.name + '/show std. dev.', False).toBool()
-		self.endCapSize = self.settings.value('multiple group: ' + self.name + '/end cap size', 0.0).toInt()[0]
-		self.bPvalueFilter = self.settings.value('multiple group: ' + self.name + '/p-value filter', True).toBool()
+		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeightPerRow = self.settings.value('multiple group: ' + self.name + '/row height', 0.2, type=float)
+		self.sortingField = self.settings.value('multiple group: ' + self.name + '/field', 'p-values', type=str)
+		self.bShowBarPlot = self.settings.value('multiple group: ' + self.name + '/sequences subplot', True, type=bool)
+		self.bShowPValueLabels = self.settings.value('multiple group: ' + self.name + '/p-value labels', True, type=bool)
+		self.bCustomLimits = self.settings.value('multiple group: ' + self.name + '/use custom limits', False, type=bool)
+		self.minX = self.settings.value('multiple group: ' + self.name + '/minimum', 0.0, type=float)
+		self.maxX = self.settings.value('multiple group: ' + self.name + '/maximum', 1.0, type=float)
+		self.markerSize = self.settings.value('multiple group: ' + self.name + '/marker size', 30, type=int)
+		self.bShowStdDev = self.settings.value('multiple group: ' + self.name + '/show std. dev.', False, type=bool)
+		self.endCapSize = self.settings.value('multiple group: ' + self.name + '/end cap size', 0, type=int)
+		self.bPvalueFilter = self.settings.value('multiple group: ' + self.name + '/p-value filter', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -82,6 +82,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		
 		self.bPvalueFilter = plotToCopy.bPvalueFilter
 	
+	@mpl14Defaults
 	def plot(self, profile, statsResults):
 		# *** Check if there is sufficient data to generate the plot
 		if len(statsResults.postHocResults.pValues) <= 0:
@@ -89,12 +90,12 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			return
 
 		if len(statsResults.postHocResults.pValues) > 200:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			reply = QtGui.QMessageBox.question(self, 'Continue?', 'Plots contains ' + str(len(statsResults.postHocResults.pValues)) + ' rows. ' +
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			reply = QtWidgets.QMessageBox.question(self, 'Continue?', 'Plots contains ' + str(len(statsResults.postHocResults.pValues)) + ' rows. ' +
 																		'It may take several seconds to generate this plot. We recommend filtering the results first.' + 
-																		'Do you wish to continue?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-			QtGui.QApplication.instance().restoreOverrideCursor()
-			if reply == QtGui.QMessageBox.No:
+																		'Do you wish to continue?', QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
+			if reply == QtWidgets.QMessageBox.StandardButton.No:
 				self.emptyAxis('Too many rows.')	
 				return
 				
@@ -207,10 +208,10 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		self.imageWidth = self.figWidth
 		self.imageHeight = plotHeight	+ 0.65	 # 0.65 inches for bottom and top labels
 		if self.imageWidth > 256 or self.imageHeight > 256:
-				QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+				QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
 				self.emptyAxis()	
-				reply = QtGui.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
-				QtGui.QApplication.instance().restoreOverrideCursor()
+				reply = QtWidgets.QMessageBox.question(self, 'Excessively large plot', 'The resulting plot is too large to display.')
+				QtWidgets.QApplication.instance().restoreOverrideCursor()
 				return
 		
 		self.fig.set_size_inches(self.imageWidth, self.imageHeight)	
@@ -288,8 +289,8 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 				if meanRelFreq2 + stdDev2 > maxPercentage:
 					maxPercentage = meanRelFreq2 + stdDev2
 
-				axNumSeq.barh(i+0.0, meanRelFreq1, height = 0.3, xerr=stdDev1, color=colour1, ecolor='black', capsize=endCapSize)
-				axNumSeq.barh(i-0.3, meanRelFreq2, height = 0.3, xerr=stdDev2, color=colour2, ecolor='black', capsize=endCapSize)
+				axNumSeq.barh(i+0.0, meanRelFreq1, height = 0.3, xerr=stdDev1, color=colour1, ecolor='black', capsize=endCapSize, align='edge')
+				axNumSeq.barh(i-0.3, meanRelFreq2, height = 0.3, xerr=stdDev2, color=colour2, ecolor='black', capsize=endCapSize, align='edge')
 				
 			for value in np.arange(-0.5, len(labels)-1, 2):
 				axNumSeq.axhspan(value, value+1, facecolor=highlightColor, edgecolor='none', zorder=-1)
@@ -304,13 +305,9 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			axNumSeq.set_yticklabels(adjustedLabels)
 			axNumSeq.set_ylim([-1, len(labels)])
 					
-			for a in axNumSeq.yaxis.majorTicks:
-				a.tick1On=False
-				a.tick2On=False
+			axNumSeq.yaxis.set_tick_params(which='major', tick1On=False, tick2On=False)
 					
-			for a in axNumSeq.xaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+			axNumSeq.xaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 				
 			for line in axNumSeq.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -359,13 +356,9 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			for a in axErrorbar.yaxis.majorTicks:
 				a.set_visible(False)
 				
-		for a in axErrorbar.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+		axErrorbar.xaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 				
-		for a in axErrorbar.yaxis.majorTicks:
-			a.tick1On=False
-			a.tick2On=False
+		axErrorbar.yaxis.set_tick_params(which='major', tick1On=False, tick2On=False)
 			
 		for line in axErrorbar.yaxis.get_ticklines(): 
 			line.set_visible(False)
@@ -387,9 +380,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			axRight.set_ylim([-1, len(pValueLabels)])
 			axRight.set_ylabel(pValueTitle)
 			
-			for a in axRight.yaxis.majorTicks:
-				a.tick1On=False
-				a.tick2On=False
+			axRight.yaxis.set_tick_params(which='major', tick1On=False, tick2On=False)
 				
 			for loc, spine in axRight.spines.items():
 				spine.set_color('none') 
@@ -426,8 +417,8 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		
 		self.configDlg.ui.chkFilterPvalue.setChecked(self.bPvalueFilter)
 		
-		if self.configDlg.exec_() == QtGui.QDialog.Accepted:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		if self.configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 			
 			self.sortingField = str(self.configDlg.ui.cboSortingField.currentText())
 			
@@ -463,10 +454,10 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 
 			self.plot(profile, statsResults)
 			
-			QtGui.QApplication.instance().restoreOverrideCursor()
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ExtendedErrorBar)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

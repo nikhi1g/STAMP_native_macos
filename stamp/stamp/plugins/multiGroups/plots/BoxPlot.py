@@ -23,9 +23,9 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog, mpl14Defaults
 from stamp.plugins.multiGroups.plots.configGUI.BoxPlotUI import Ui_BoxPlotDialog
 
 from stamp.plugins.PlotEventHandler import PlotEventHandler
@@ -51,11 +51,11 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		self.type = 'Exploratory'
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 7.0).toDouble()[0]
-		self.fieldToPlot = self.settings.value('multiple group: ' + self.name + '/field to plot', 'Proportion of sequences (%)').toString()
-		self.bShowAverages = self.settings.value('multiple group: ' + self.name + '/show averages', True).toBool()
-		self.bShowPvalue = self.settings.value('multiple group: ' + self.name + '/show p-value', True).toBool()
+		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 7.0, type=float)
+		self.fieldToPlot = self.settings.value('multiple group: ' + self.name + '/field to plot', 'Proportion of sequences (%)', type=str)
+		self.bShowAverages = self.settings.value('multiple group: ' + self.name + '/show averages', True, type=bool)
+		self.bShowPvalue = self.settings.value('multiple group: ' + self.name + '/show p-value', True, type=bool)
 
 	def mirrorProperties(self, plotToCopy):
 		super(BoxPlot, self).mirrorProperties(plotToCopy)
@@ -68,6 +68,7 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		
 		self.bShowPvalue = plotToCopy.bShowPvalue
 		
+	@mpl14Defaults
 	def plot(self, profile, statsResults):
 		if len(profile.profileDict) <= 0 or self.preferences['Selected multiple group feature'] == '':
 			self.emptyAxis()
@@ -97,7 +98,8 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 																		1.0 - xOffsetFigSpace - (2*padding)/self.figWidth, 1.0 - yOffsetFigSpace - (2*padding)/self.figHeight])
 			
 		# box plot
-		bp = axesBoxPlot.boxplot(data, notch=0, sym='k+', vert=1, whis=1.5)
+		bp = axesBoxPlot.boxplot(data, notch=0, sym='k+', orientation='vertical', whis=1.5)
+		axesBoxPlot.set_xlim(0.5, len(data) + 0.5)
 		setp(bp['boxes'], color='black')
 		setp(bp['whiskers'], color='black',linestyle='-')
 		setp(bp['medians'], color='black')
@@ -145,13 +147,9 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 			xLabels.append(group)
 		axesBoxPlot.set_xticklabels(xLabels)
 			
-		for a in axesBoxPlot.yaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+		axesBoxPlot.yaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 				
-		for a in axesBoxPlot.xaxis.majorTicks:
-			a.tick1On=True
-			a.tick2On=False
+		axesBoxPlot.xaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 			
 		for line in axesBoxPlot.yaxis.get_ticklines(): 
 			line.set_color(axesColour)
@@ -183,7 +181,7 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		
 		configDlg.ui.chkShowPvalue.setChecked(self.bShowPvalue)
 				
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.fieldToPlot = str(configDlg.ui.cboFieldToPlot.currentText())
 			
 			self.figWidth = configDlg.ui.spinFigWidth.value()
@@ -202,7 +200,7 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ProfileScatterPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

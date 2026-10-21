@@ -23,15 +23,15 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog, mpl14Defaults
 from stamp.plugins.multiGroups.plots.configGUI.HeatmapPlotUI import Ui_HeatmapPlotDialog
 
 from stamp.plugins.PlotEventHandler import PlotEventHandler
 
-from matplotlib import pylab
 import matplotlib as mpl
+import matplotlib.colorbar
 from matplotlib.patches import Rectangle
 
 import numpy
@@ -62,20 +62,20 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 		self.bPlotFeaturesIndividually = False
 
 		self.settings = preferences['Settings']
-		self.fieldToPlot = self.settings.value('group: ' + self.name + '/field to plot', 'Proportion of sequences (%)').toString()
-		self.bPlotOnlyActiveFeatures = self.settings.value('group: ' + self.name + '/plot only active features', False).toBool()
-		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value('group: ' + self.name + '/height', 7.0).toDouble()[0]
-		self.sortColMethod = self.settings.value('group: ' + self.name + '/sort col method', 'Average neighbour (UPGMA)').toString()
-		self.sortRowMethod = self.settings.value('group: ' + self.name + '/sort row method', 'Average neighbour (UPGMA)').toString()
-		self.bShowColDendrogram = self.settings.value('group: ' + self.name + '/show col dendrogram', True).toBool()
-		self.bShowRowDendrogram = self.settings.value('group: ' + self.name + '/show row dendrogram', True).toBool()
-		self.colourmap = self.settings.value('group: ' + self.name + '/colourmap', 'Blues').toString()
-		self.legendPos = self.settings.value('group: ' + self.name + '/legend position', 3).toInt()[0]
-		self.clusteringColThreshold = self.settings.value('group: ' + self.name + '/clustering col threshold', 0.75).toDouble()[0]
-		self.clusteringRowThreshold = self.settings.value('group: ' + self.name + '/clustering row threshold', 0.75).toDouble()[0]
-		self.dendrogramHeight = self.settings.value('group: ' + self.name + '/dendrogram col height', 1.5).toDouble()[0]
-		self.dendrogramWidth = self.settings.value('group: ' + self.name + '/dendrogram row width', 1.5).toDouble()[0]
+		self.fieldToPlot = self.settings.value('group: ' + self.name + '/field to plot', 'Proportion of sequences (%)', type=str)
+		self.bPlotOnlyActiveFeatures = self.settings.value('group: ' + self.name + '/plot only active features', False, type=bool)
+		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value('group: ' + self.name + '/height', 7.0, type=float)
+		self.sortColMethod = self.settings.value('group: ' + self.name + '/sort col method', 'Average neighbour (UPGMA)', type=str)
+		self.sortRowMethod = self.settings.value('group: ' + self.name + '/sort row method', 'Average neighbour (UPGMA)', type=str)
+		self.bShowColDendrogram = self.settings.value('group: ' + self.name + '/show col dendrogram', True, type=bool)
+		self.bShowRowDendrogram = self.settings.value('group: ' + self.name + '/show row dendrogram', True, type=bool)
+		self.colourmap = self.settings.value('group: ' + self.name + '/colourmap', 'Blues', type=str)
+		self.legendPos = self.settings.value('group: ' + self.name + '/legend position', 3, type=int)
+		self.clusteringColThreshold = self.settings.value('group: ' + self.name + '/clustering col threshold', 0.75, type=float)
+		self.clusteringRowThreshold = self.settings.value('group: ' + self.name + '/clustering row threshold', 0.75, type=float)
+		self.dendrogramHeight = self.settings.value('group: ' + self.name + '/dendrogram col height', 1.5, type=float)
+		self.dendrogramWidth = self.settings.value('group: ' + self.name + '/dendrogram row width', 1.5, type=float)
 
 	def mirrorProperties(self, plotToCopy):
 		super(HeatmapPlot, self).mirrorProperties(plotToCopy)
@@ -124,6 +124,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 		return index, dendrogram['leaves']
 
+	@mpl14Defaults
 	def plot(self, profile, statsResults):
 
 		featuresToPlot = list(profile.profileDict.keys())
@@ -134,9 +135,9 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			self.emptyAxis()
 			return
 		elif len(featuresToPlot) > 1000 or len(profile.activeSamplesInGroups) > 1000:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			QtGui.QMessageBox.information(self, 'Too much data!', 'Heatmap plots are limited to 1000 samples and 1000 features.', QtGui.QMessageBox.Ok)
-			QtGui.QApplication.instance().restoreOverrideCursor()
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			QtWidgets.QMessageBox.information(self, 'Too much data!', 'Heatmap plots are limited to 1000 samples and 1000 features.', QtWidgets.QMessageBox.StandardButton.Ok)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
 			self.emptyAxis()
 			return
 
@@ -147,33 +148,33 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 		# *** Colour map for category dendrogram on left
 		if self.colourmap == "Blues":
-			self.matrixColourmap = pylab.cm.Blues
+			self.matrixColourmap = mpl.colormaps['Blues']
 		elif self.colourmap == "Blue to red to green":
-			self.matrixColourmap = pylab.cm.brg
+			self.matrixColourmap = mpl.colormaps['brg']
 		elif self.colourmap == "Blue to white to red":
-			self.matrixColourmap = pylab.cm.bwr
+			self.matrixColourmap = mpl.colormaps['bwr']
 		elif self.colourmap == "Cool to warm":
-			self.matrixColourmap = pylab.cm.cool
+			self.matrixColourmap = mpl.colormaps['cool']
 		elif self.colourmap == "Grayscale":
-			self.matrixColourmap = pylab.cm.gist_yarg
+			self.matrixColourmap = mpl.colormaps['gist_yarg']
 		elif self.colourmap == "Jet":
-			self.matrixColourmap = pylab.cm.jet
+			self.matrixColourmap = mpl.colormaps['jet']
 		elif self.colourmap == "Orange to red":
-			self.matrixColourmap = pylab.cm.OrRd
+			self.matrixColourmap = mpl.colormaps['OrRd']
 		elif self.colourmap == "Paired":
-			self.matrixColourmap = pylab.cm.Paired
+			self.matrixColourmap = mpl.colormaps['Paired']
 		elif self.colourmap == "Purple to green":
-			self.matrixColourmap = pylab.cm.PRGn
+			self.matrixColourmap = mpl.colormaps['PRGn']
 		elif self.colourmap == "Reds":
-			self.matrixColourmap = pylab.cm.Reds
+			self.matrixColourmap = mpl.colormaps['Reds']
 		elif self.colourmap == "Red to blue":
-			self.matrixColourmap = pylab.cm.RdBu
+			self.matrixColourmap = mpl.colormaps['RdBu']
 		elif self.colourmap == "Red to yellow to blue":
-			self.matrixColourmap = pylab.cm.RdYlBu
+			self.matrixColourmap = mpl.colormaps['RdYlBu']
 		elif self.colourmap == "Spectral":
-			self.matrixColourmap = pylab.cm.spectral
+			self.matrixColourmap = mpl.colormaps['nipy_spectral']
 		elif self.colourmap == "Yellow to orange to red":
-			self.matrixColourmap = pylab.cm.YlOrRd
+			self.matrixColourmap = mpl.colormaps['YlOrRd']
 
 		# *** Get data for each group
 		if self.fieldToPlot == "Number of sequences":
@@ -303,7 +304,8 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			leafIndex1 = numpy.argsort(numpy.mean(matrix, axis=1))
 		else:
 			axisRowDendrogram = self.fig.add_axes([rowDendrogramX, rowDendrogramY, rowDendrogramW, rowDendrogramH], frame_on=False)
-			ind1, leafIndex1 = self.plotDendrogram(matrix, axisRowDendrogram, self.sortRowMethod, self.clusteringRowThreshold, 'right', bPlot=self.bShowRowDendrogram)
+			# scipy <= 0.16 drew orientation='right' with the root on the left; scipy now calls that 'left'
+			ind1, leafIndex1 = self.plotDendrogram(matrix, axisRowDendrogram, self.sortRowMethod, self.clusteringRowThreshold, 'left', bPlot=self.bShowRowDendrogram)
 
 		if self.sortColMethod == 'Alphabetical order':
 			leafIndex2 = numpy.argsort(colHeaders)
@@ -347,7 +349,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			ind2 = ind2[leafIndex2]
 			axc = self.fig.add_axes([colClusterBarX, colClusterBarY, colClusterBarW, colClusterBarH])  # axes for column side colorbar
 			dc = numpy.array(numpy.arange(len(leafIndex2)), dtype=int)
-			dc.shape = (1, len(leafIndex2))
+			dc = dc.reshape((1, len(leafIndex2)))
 			axc.matshow(dc, aspect='auto', origin='lower', cmap=sampleColourMap)
 			axc.set_xticks([])
 			axc.set_yticks([])
@@ -359,7 +361,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			ind1 = ind1[leafIndex1]
 			axr = self.fig.add_axes([rowClusterBarX, rowClusterBarY, rowClusterBarW, rowClusterBarH])
 			dr = numpy.array(ind1, dtype=int)
-			dr.shape = (len(ind1), 1)
+			dr = dr.reshape((len(ind1), 1))
 			axr.matshow(dr, aspect='auto', origin='lower', cmap=self.discreteColourMap)
 			axr.set_xticks([])
 			axr.set_yticks([])
@@ -414,7 +416,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 				groupRecs.append(Rectangle((0, 0), 1, 1, fc=colour))
 				groups.append(group)
 
-			legend = self.fig.legend(groupRecs, groups, loc=self.legendPos, ncol=int(len(groups) / 2 + 0.5))
+			legend = self.fig.legend(groupRecs, groups, loc=self.legendPos, ncol=int(len(groups) // 2 + 0.5))
 			legend.get_frame().set_linewidth(0)
 
 		self.updateGeometry()
@@ -456,7 +458,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 		configDlg.ui.spinDendrogramRowWidth.setValue(self.dendrogramWidth)
 
 
-		if configDlg.exec_() == QtGui.QDialog.Accepted:
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			self.fieldToPlot = str(configDlg.ui.cboFieldToPlot.currentText())
 			self.bPlotOnlyActiveFeatures = configDlg.ui.chkPlotOnlyActiveFeatures.isChecked()
 
@@ -507,7 +509,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			self.plot(profile, statsResults)
 
 if __name__ == "__main__":
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(HeatmapPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
