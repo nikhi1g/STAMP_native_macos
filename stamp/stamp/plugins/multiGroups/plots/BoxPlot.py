@@ -107,10 +107,10 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		for groupName in profile.activeGroupNames:
 			colours.append(str(self.preferences['Group colours'][groupName].name()))
 
-		for i in xrange(0, len(data)):
+		for i in range(0, len(data)):
 			# get box coordinates
 			box = bp['boxes'][i]
-			boxCoords = zip(box.get_xdata()[0:5],box.get_ydata()[0:5])
+			boxCoords = list(zip(box.get_xdata()[0:5],box.get_ydata()[0:5]))
 			
 			# colour in box
 			boxPolygon = Polygon(boxCoords, facecolor=colours[i])
@@ -122,7 +122,7 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		
 		# mark average
 		if self.bShowAverages:
-			for i in xrange(0,len(data)):
+			for i in range(0,len(data)):
 				med = bp['medians'][i]
 				axesBoxPlot.plot([np.average(med.get_xdata())], [np.average(data[i])], color='w', marker='*', markeredgecolor='k')
 				
@@ -159,7 +159,7 @@ class BoxPlot(AbstractMultiGroupPlotPlugin):
 		for line in axesBoxPlot.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in axesBoxPlot.spines.iteritems():
+		for loc, spine in axesBoxPlot.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none')
 			else:

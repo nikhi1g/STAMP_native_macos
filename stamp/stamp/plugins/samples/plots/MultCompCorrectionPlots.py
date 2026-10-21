@@ -96,7 +96,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		self.fig.subplots_adjust(right = 0.97)
 				
 		# Sort p-values
-		pValues = zip(correctedValues, rawValues)
+		pValues = list(zip(correctedValues, rawValues))
 		pValues.sort()
 		correctedValues = [pValue[0] for pValue in pValues]
 		rawValues = [pValue[1] for pValue in pValues]
@@ -137,7 +137,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		for line in ax1.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in ax1.spines.iteritems():
+		for loc, spine in ax1.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:
@@ -171,7 +171,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		for line in ax2.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in ax2.spines.iteritems():
+		for loc, spine in ax2.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:
@@ -205,7 +205,7 @@ class MultCompCorrectionPlots(AbstractSamplePlotPlugin):
 		for line in ax3.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in ax3.spines.iteritems():
+		for loc, spine in ax3.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:

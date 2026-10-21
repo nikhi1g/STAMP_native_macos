@@ -138,11 +138,11 @@ class Bar(AbstractSamplePlotPlugin):
 		if self.preferences['Truncate feature names']:
 			length = self.preferences['Length of truncated feature names']
 			
-			for i in xrange(0, len(features)):
+			for i in range(0, len(features)):
 				if len(features[i]) > length+3:
 					features[i] = features[i][0:length] + '...'
 
-			for i in xrange(0, len(highlightedFeatures)):
+			for i in range(0, len(highlightedFeatures)):
 				if len(highlightedFeatures[i]) > length+3:
 					highlightedFeatures[i] = highlightedFeatures[i][0:length] + '...'
 						
@@ -217,7 +217,7 @@ class Bar(AbstractSamplePlotPlugin):
 		for line in axesBar.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in axesBar.spines.iteritems():
+		for loc, spine in axesBar.spines.items():
 			if loc in ['right','top']:
 					spine.set_color('none') 
 			else:

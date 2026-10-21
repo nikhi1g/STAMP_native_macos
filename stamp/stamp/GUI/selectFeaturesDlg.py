@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from selectFeaturesUI import Ui_SelectFeatureDlg
+from .selectFeaturesUI import Ui_SelectFeatureDlg
 
 class SelectFeaturesDlg(QtGui.QDialog):
   def __init__(self, statsTestResults, parent=None):

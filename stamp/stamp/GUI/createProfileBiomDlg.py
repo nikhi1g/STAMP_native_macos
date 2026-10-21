@@ -24,7 +24,7 @@ from os.path import splitext
 from PyQt4 import QtGui, QtCore
 from biom.parse import parse_biom_table
 
-from createProfileBiomUI import Ui_CreateProfileBiomDlg
+from .createProfileBiomUI import Ui_CreateProfileBiomDlg
 from stamp.metagenomics.StringHelper import isNumber
 
 class CreateProfileBiomDlg(QtGui.QDialog):
@@ -81,7 +81,7 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 		if (ext == '.gz'):
 			table = parse_biom_table(gzip.open(file_name,'rb'))
 		else:
-			table = parse_biom_table(open(file_name,'U'))
+			table = parse_biom_table(open(file_name, newline=None))
 		
 		metadata_name = metadata_name.split('(')[0].rstrip()
 		if metadata_name is None or metadata_name == '<observation ids>':
@@ -124,7 +124,7 @@ class CreateProfileBiomDlg(QtGui.QDialog):
 				row.append(obs_id)
 			
 			#Add count data to the row
-			row.extend(map(str,obs_vals))
+			row.extend(list(map(str,obs_vals)))
 			fout.write("\t".join(row) + '\n')
 			
 		fout.close()

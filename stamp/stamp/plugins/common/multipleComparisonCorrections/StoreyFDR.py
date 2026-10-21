@@ -68,9 +68,9 @@ class StoreyFDR(AbstractMultCompCorrection):
     for testPt in testPts:
       # calculate bootstrap pi0 values  
       mse = 0
-      for dummy in xrange(0, bootstraps):
+      for dummy in range(0, bootstraps):
         bootstrapPvalues = []
-        for i in xrange(0, numPvalues):
+        for i in range(0, numPvalues):
           rnd = numpy.random.randint(0, numPvalues)
           bootstrapPvalues.append(pValues[rnd])
         
@@ -102,17 +102,17 @@ class StoreyFDR(AbstractMultCompCorrection):
     qValues = [None]*numPvalues
     qValues[indexedList[0][1]] = (self.estimated_pi0_hat * indexedList[0][0])
     
-    for i in xrange(1,len(pValues)):
+    for i in range(1,len(pValues)):
       qValues[indexedList[i][1]] =  min(self.estimated_pi0_hat*numPvalues*indexedList[i][0] / (numPvalues - i), qValues[indexedList[i-1][1]]) 
   
     self.numSignFeatures = len([x for x in qValues if x <= alpha])
     
     if self.estimated_pi0_hat < 0.01:
       try:
-        from PyQt4 import QtGui
-        QtGui.QMessageBox.information(None, 'Storey\'s FDR', 'P-values do not appear to be uniformly distributed. Consider using the Benjamini-Hochberg FDR approach.', QtGui.QMessageBox.Ok)
+        from PyQt6 import QtWidgets
+        QtWidgets.QMessageBox.information(None, 'Storey\'s FDR', 'P-values do not appear to be uniformly distributed. Consider using the Benjamini-Hochberg FDR approach.', QtWidgets.QMessageBox.StandardButton.Ok)
       except ImportError: 
-        print 'Storey\'s FDR error: P-values do not appear to be uniformly distributed. Consider using the Benjamini-Hochberg FDR approach.'
+        print('Storey\'s FDR error: P-values do not appear to be uniformly distributed. Consider using the Benjamini-Hochberg FDR approach.')
         
     return qValues
   

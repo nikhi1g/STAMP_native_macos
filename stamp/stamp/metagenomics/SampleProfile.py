@@ -40,7 +40,7 @@ class SampleProfile:
     self.numParentCategories = 0
         
   def getFeatures(self):
-    return self.profileDict.keys()
+    return list(self.profileDict.keys())
     
   def getNumFeatures(self):
     return len(self.profileDict)
@@ -58,7 +58,7 @@ class SampleProfile:
     return [seq1, seq2, parentSeq1, parentSeq2]
   
   def getLabeledTables(self):
-    tables = [[feature] + self.getTableData(feature) for feature in self.profileDict.keys()]     
+    tables = [[feature] + self.getTableData(feature) for feature in list(self.profileDict.keys())]     
     return tables
 
   def getFeatureCounts(self, feature):

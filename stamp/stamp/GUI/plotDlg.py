@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from plotDlgUI import Ui_PlotDlg
+from .plotDlgUI import Ui_PlotDlg
 
 class PlotDlg(QtGui.QDockWidget):
 	def __init__(self, parent=None, info=None):

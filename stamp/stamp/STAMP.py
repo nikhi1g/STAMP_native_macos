@@ -35,40 +35,40 @@ import platform
 import string
 
 import stamp.Dependencies
-from stamp.GUI.plotDlg import PlotDlg  # forward reference so py2app recognizes this file is required
+from .stamp.GUI.plotDlg import PlotDlg  # forward reference so py2app recognizes this file is required
 
 from PyQt4 import QtGui, QtCore
 
-from mainUI import Ui_MainWindow
-from stamp.GUI.selectFeaturesDlg import SelectFeaturesDlg
-from stamp.GUI.createProfileMgRastDlg import CreateProfileMgRastDlg
-from stamp.GUI.createProfileRITADlg import CreateProfileRITADlg
-from stamp.GUI.createProfileCoMetDlg import CreateProfileCoMetDlg
-from stamp.GUI.createProfileMothurDlg import CreateProfileMothurDlg
-from stamp.GUI.createProfileBiomDlg import CreateProfileBiomDlg
-from stamp.GUI.loadDataDlg import LoadDataDlg
-from stamp.GUI.assignCOGsDlg import AssignCOGsDlg
-from stamp.GUI.preferencesDlg import PreferencesDlg
-from stamp.GUI.multCompCorrectionInfoDlg import MultCompCorrectionInfoDlg
-from stamp.GUI.groupLegendDlg import GroupLegendDlg
-from stamp.GUI.statsTableDlg import StatsTableDlg
-from stamp.GUI.metadataTableDlg import MetadataTableDlg
+from .mainUI import Ui_MainWindow
+from .stamp.GUI.selectFeaturesDlg import SelectFeaturesDlg
+from .stamp.GUI.createProfileMgRastDlg import CreateProfileMgRastDlg
+from .stamp.GUI.createProfileRITADlg import CreateProfileRITADlg
+from .stamp.GUI.createProfileCoMetDlg import CreateProfileCoMetDlg
+from .stamp.GUI.createProfileMothurDlg import CreateProfileMothurDlg
+from .stamp.GUI.createProfileBiomDlg import CreateProfileBiomDlg
+from .stamp.GUI.loadDataDlg import LoadDataDlg
+from .stamp.GUI.assignCOGsDlg import AssignCOGsDlg
+from .stamp.GUI.preferencesDlg import PreferencesDlg
+from .stamp.GUI.multCompCorrectionInfoDlg import MultCompCorrectionInfoDlg
+from .stamp.GUI.groupLegendDlg import GroupLegendDlg
+from .stamp.GUI.statsTableDlg import StatsTableDlg
+from .stamp.GUI.metadataTableDlg import MetadataTableDlg
 
-from stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
-from stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
-from stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
-from stamp.metagenomics.fileIO.StampIO import StampIO
-from stamp.metagenomics.fileIO.MetadataIO import MetadataIO
-from stamp.metagenomics.GenericTable import GenericTable
-from stamp.metagenomics.ProfileTree import ProfileTree
-from stamp.metagenomics.SampleProfile import SampleProfile
-from stamp.metagenomics.GroupProfile import GroupProfile
-from stamp.metagenomics.MultiGroupProfile import MultiGroupProfile
+from .stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
+from .stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
+from .stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
+from .stamp.metagenomics.fileIO.StampIO import StampIO
+from .stamp.metagenomics.fileIO.MetadataIO import MetadataIO
+from .stamp.metagenomics.GenericTable import GenericTable
+from .stamp.metagenomics.ProfileTree import ProfileTree
+from .stamp.metagenomics.SampleProfile import SampleProfile
+from .stamp.metagenomics.GroupProfile import GroupProfile
+from .stamp.metagenomics.MultiGroupProfile import MultiGroupProfile
 
-from stamp.metagenomics.DirectoryHelper import getMainDir
+from .stamp.metagenomics.DirectoryHelper import getMainDir
 
-from stamp.plugins.PlotsManager import PlotsManager
-from stamp.plugins.PluginManager import PluginManager
+from .stamp.plugins.PlotsManager import PlotsManager
+from .stamp.plugins.PluginManager import PluginManager
 
 import matplotlib as mpl
 mpl.rcParams['svg.fonttype'] = 'none'
@@ -640,7 +640,7 @@ class MainWindow(QtGui.QMainWindow):
 		if self.multiGroupStatsTest.results.data != []:
 			if self.multiGroupPlot.checkFlags().bRunPostHocTest:
 				coverage = float(self.ui.cboMultiGroupNominalCoverage.currentText())
-				postHocTest = self.postHocTestDict[unicode(self.ui.cboPostHocTest.currentText(), 'latin-1')]
+				postHocTest = self.postHocTestDict[str(self.ui.cboPostHocTest.currentText(), 'latin-1')]
 				self.multiGroupStatsTest.runPostHocTest(postHocTest, self.multiGroupProfile, self.preferences['Selected multiple group feature'], coverage)
 
 			self.multiGroupPlot.update(self.multiGroupProfile, self.multiGroupStatsTest.results)
@@ -971,7 +971,7 @@ class MainWindow(QtGui.QMainWindow):
 			pValuesCorrected = self.groupStatsTest.results.getColumnAsStr('pValuesCorrected', bActiveFeatures)
 			notes = self.groupStatsTest.results.getColumn('Note', bActiveFeatures)
 
-			for i in xrange(0, len(features)):
+			for i in range(0, len(features)):
 				tableData.append([features[i], effectSizes[i], pValues[i], pValuesCorrected[i], notes[i]])
 
 		if self.preferences['Selected group feature'] not in features:
@@ -1001,7 +1001,7 @@ class MainWindow(QtGui.QMainWindow):
 			pValuesCorrected = self.multiGroupStatsTest.results.getColumnAsStr('pValuesCorrected', bActiveFeatures)
 			notes = self.multiGroupStatsTest.results.getColumn('Note', bActiveFeatures)
 
-			for i in xrange(0, len(features)):
+			for i in range(0, len(features)):
 				tableData.append([features[i], effectSizes[i], pValues[i], pValuesCorrected[i], notes[i]])
 
 		if self.preferences['Selected multiple group feature'] not in features:
@@ -1125,7 +1125,7 @@ class MainWindow(QtGui.QMainWindow):
 		parentHeading = str(self.ui.cboParentalLevel.currentText())
 		profileHeading = str(self.ui.cboProfileLevel.currentText())
 
-		self.multiGroupProfile = self.profileTree.createMultiGroupProfile(self.profileTree.groupDict.keys(),
+		self.multiGroupProfile = self.profileTree.createMultiGroupProfile(list(self.profileTree.groupDict.keys()),
 																			parentHeading, profileHeading, self.metadata,
 																			self.ui.cboUnclassified.currentText())
 
@@ -1547,12 +1547,12 @@ class MainWindow(QtGui.QMainWindow):
 			return
 
 		features = set([])
-		for feature in self.sampleProfile.profileDict.keys():
+		for feature in list(self.sampleProfile.profileDict.keys()):
 			hierarchy = self.sampleProfile.getHierarchy(feature)
 			features.add(hierarchy[index])
 
 		features = list(features)
-		features.sort(key=string.lower)
+		features.sort(key=str.lower)
 
 		featureStrList = QtCore.QStringList()
 		for feature in features:
@@ -1575,12 +1575,12 @@ class MainWindow(QtGui.QMainWindow):
 			return
 
 		features = set([])
-		for feature in self.groupProfile.profileDict.keys():
+		for feature in list(self.groupProfile.profileDict.keys()):
 			hierarchy = self.groupProfile.getHierarchy(feature)
 			features.add(hierarchy[index])
 
 		features = list(features)
-		features.sort(key=string.lower)
+		features.sort(key=str.lower)
 
 		featureStrList = QtCore.QStringList()
 		for feature in features:
@@ -1603,12 +1603,12 @@ class MainWindow(QtGui.QMainWindow):
 			return
 
 		features = set([])
-		for feature in self.multiGroupProfile.profileDict.keys():
+		for feature in list(self.multiGroupProfile.profileDict.keys()):
 			hierarchy = self.multiGroupProfile.getHierarchy(feature)
 			features.add(hierarchy[index])
 
 		features = list(features)
-		features.sort(key=string.lower)
+		features.sort(key=str.lower)
 
 		featureStrList = QtCore.QStringList()
 		for feature in features:
@@ -1629,7 +1629,7 @@ class MainWindow(QtGui.QMainWindow):
 		selectedFeature = self.ui.cboSampleHighlightFeature.currentText()
 
 		self.preferences['Highlighted sample features'] = []
-		for feature in self.sampleProfile.profileDict.keys():
+		for feature in list(self.sampleProfile.profileDict.keys()):
 			hierarchy = self.sampleProfile.getHierarchy(feature)
 			if hierarchy[index] == selectedFeature:
 				self.preferences['Highlighted sample features'].append(feature)
@@ -1645,7 +1645,7 @@ class MainWindow(QtGui.QMainWindow):
 		selectedFeature = self.ui.cboGroupHighlightFeature.currentText()
 
 		self.preferences['Highlighted group features'] = []
-		for feature in self.groupProfile.profileDict.keys():
+		for feature in list(self.groupProfile.profileDict.keys()):
 			hierarchy = self.groupProfile.getHierarchy(feature)
 			if hierarchy[index] == selectedFeature:
 				self.preferences['Highlighted group features'].append(feature)
@@ -1661,7 +1661,7 @@ class MainWindow(QtGui.QMainWindow):
 		selectedFeature = self.ui.cboMultiGroupHighlightFeature.currentText()
 
 		self.preferences['Highlighted multiple group features'] = []
-		for feature in self.multiGroupProfile.profileDict.keys():
+		for feature in list(self.multiGroupProfile.profileDict.keys()):
 			hierarchy = self.multiGroupProfile.getHierarchy(feature)
 			if hierarchy[index] == selectedFeature:
 				self.preferences['Highlighted multiple group features'].append(feature)
@@ -1852,7 +1852,7 @@ def main():
 		mainWindow.show()
 		sys.exit(app.exec_())
 	else:
-		print 'Failed to start STAMP.'
+		print('Failed to start STAMP.')
 		sys.exit()
 
 if __name__ == "__main__":

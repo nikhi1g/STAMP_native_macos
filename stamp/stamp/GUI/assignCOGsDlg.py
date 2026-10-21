@@ -23,7 +23,7 @@
 
 from PyQt4 import QtGui, QtCore
 from stamp.metagenomics.fileIO.COG_IO import COG_IO
-from assignCOGUI import Ui_AssignCOGsDlg
+from .assignCOGUI import Ui_AssignCOGsDlg
 
 class AssignCOGsDlg(QtGui.QDialog):
 	def __init__(self, preferences, parent=None):

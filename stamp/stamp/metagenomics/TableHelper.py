@@ -22,7 +22,7 @@
 import operator
 import math
 
-from PyQt4 import QtCore, QtGui
+from PyQt6 import QtCore, QtWidgets
 
 def SortTable(table, cols, bAscending = True, bAbsoluteValue = False, bLog = False):
 	''' 
@@ -40,14 +40,11 @@ def SortTable(table, cols, bAscending = True, bAbsoluteValue = False, bLog = Fal
 	
 	for col in reversed(cols):
 		if bLog and bAbsoluteValue:
-			f = (lambda a, b: cmp(abs(math.log10(a)), abs(math.log10(b))))
-			table = sorted(table, f, key = operator.itemgetter(col), reverse = (not bAscending))
+			table = sorted(table, key = lambda row: abs(math.log10(row[col])), reverse = (not bAscending))
 		elif bLog and not bAbsoluteValue:
-			f = (lambda a, b: cmp(math.log10(a), math.log10(b)))
-			table = sorted(table, f, key = operator.itemgetter(col), reverse = (not bAscending))
+			table = sorted(table, key = lambda row: math.log10(row[col]), reverse = (not bAscending))
 		elif not bLog and bAbsoluteValue:
-			f = (lambda a, b: cmp(abs(a), abs(b)))
-			table = sorted(table, f, key = operator.itemgetter(col), reverse = (not bAscending))
+			table = sorted(table, key = lambda row: abs(row[col]), reverse = (not bAscending))
 		else:
 			table = sorted(table, key = operator.itemgetter(col), reverse = (not bAscending))
 			
@@ -83,18 +80,17 @@ def SortTableNumericStrCol(table, col, bAscending = True):
 			bAscending: flag indicating if column should be sorted in ascending or
 									descending order
 	'''
-	f = (lambda a, b: cmp(GetStrNumber(a), GetStrNumber(b)))
-	table = sorted(table, f, key = operator.itemgetter(col), reverse = (not bAscending))
+	table = sorted(table, key = lambda row: GetStrNumber(row[col]), reverse = (not bAscending))
 			
 	return table
 
-class QTableWidgetNumericItem(QtGui.QTableWidgetItem):
+class QTableWidgetNumericItem(QtWidgets.QTableWidgetItem):
 	'''
 	Sort table columns in numeric order.
 	'''
 	
 	def __init__(self, text):
-		QtGui.QTableWidgetItem.__init__(self, text, QtGui.QTableWidgetItem.UserType)
+		QtWidgets.QTableWidgetItem.__init__(self, text, QtWidgets.QTableWidgetItem.ItemType.UserType.value)
 
 	def __lt__(self, other):
 		return float(self.text()) < float(other.text())

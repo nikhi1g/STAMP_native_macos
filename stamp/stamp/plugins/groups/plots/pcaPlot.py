@@ -254,9 +254,9 @@ class pcaPlot(AbstractGroupPlotPlugin):
 			
 		colours = []
 		numGroup1Samples = len(profile.samplesInGroup1)
-		for _ in xrange(0, numGroup1Samples):
+		for _ in range(0, numGroup1Samples):
 			colours.append(group1Colour)
-		for _ in xrange(0, len(profile.samplesInGroup2)):
+		for _ in range(0, len(profile.samplesInGroup2)):
 			colours.append(group2Colour)
 
 		# scatter plots
@@ -342,7 +342,7 @@ class pcaPlot(AbstractGroupPlotPlugin):
 			for line in axes.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 				
-			for loc, spine in axes.spines.iteritems():
+			for loc, spine in axes.spines.items():
 				if loc in ['right','top']:
 					spine.set_color('none') 
 				else:

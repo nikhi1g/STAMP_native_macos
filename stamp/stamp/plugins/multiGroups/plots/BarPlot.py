@@ -81,7 +81,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 			return
 		
 		sampleNames = []
-		for i in xrange(0, len(profile.activeSamplesInGroups )):
+		for i in range(0, len(profile.activeSamplesInGroups )):
 			sampleNames += profile.activeSamplesInGroups[i]
 
 		# *** Find longest label
@@ -91,7 +91,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 			bTruncate = True
 		
 		longestLabelLen = 0
-		for i in xrange(0, len(sampleNames)):
+		for i in range(0, len(sampleNames)):
 			if bTruncate and len(sampleNames[i]) > length+3:
 				sampleNames[i] = sampleNames[i][0:length] + '...'
 				
@@ -113,7 +113,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		self.fig.set_size_inches(figWidth, figHeight)
 		
 		maxValue = 0
-		for i in xrange(0, len(data)):
+		for i in range(0, len(data)):
 			curMax = max(data[i])
 			if curMax > maxValue:
 				maxValue = curMax
@@ -140,7 +140,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		
 		theRects = []
 		start = 0
-		for i in xrange(0, len(data)):
+		for i in range(0, len(data)):
 			rects = axesBar.bar(np.arange(len(data[i]))*colWidth + start*colWidth, data[i], width=barWidth, color=colours[i], zorder=5)
 			theRects.append(rects[0])
 			start += len(data[i])
@@ -152,7 +152,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		# *** Plot average lines
 		if self.bShowAverages:
 			start = 0
-			for i in xrange(0, len(data)):
+			for i in range(0, len(data)):
 				avgGroup = float(sum(data[i])) / len(data[i])
 				axesBar.plot([start*colWidth - 0.25*colWidth, (start + len(data[i]))*colWidth - 0.25*colWidth], [avgGroup, avgGroup], color=colours[i], linestyle='-', zorder=1)
 				start += len(data[i])
@@ -192,7 +192,7 @@ class BarPlot(AbstractMultiGroupPlotPlugin):
 		for line in axesBar.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in axesBar.spines.iteritems():
+		for loc, spine in axesBar.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:

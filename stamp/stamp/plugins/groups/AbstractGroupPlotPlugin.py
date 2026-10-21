@@ -158,7 +158,7 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		emptyAxis.set_xticks([])
 		emptyAxis.set_title(title)
 		
-		for loc, spine in emptyAxis.spines.iteritems():
+		for loc, spine in emptyAxis.spines.items():
 			if loc in ['right','top']:
 					spine.set_color('none') 
 		

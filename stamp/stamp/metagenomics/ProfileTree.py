@@ -352,7 +352,7 @@ class ProfileTree:
 		# get list of samples in each group for samples of interest
 		multiGroupProfile.samplesInGroups = []
 		samples = []
-		multiGroupProfile.smallestGroup = sys.maxint
+		multiGroupProfile.smallestGroup = sys.maxsize
 		for groupName in multiGroupProfile.groupNames:
 			samplesInGroup = list(set(self.groupDict[groupName]).intersection(metadata.activeSamples))
 			sortedSampleNames = sorted(samplesInGroup)

@@ -126,7 +126,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 	def plot(self, profile, statsResults):
 
-		featuresToPlot = profile.profileDict.keys()
+		featuresToPlot = list(profile.profileDict.keys())
 		if self.bPlotOnlyActiveFeatures:
 			featuresToPlot = statsResults.activeFeatures
 
@@ -182,7 +182,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 			data = profile.getActiveFeatureFromActiveSamplesProportions(featuresToPlot)
 
 		matrix = []
-		for r in xrange(0, len(data)):
+		for r in range(0, len(data)):
 			row = []
 			for d in data[r]:
 				row += d
@@ -204,7 +204,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 		longestLabelLen = 0
 		longestRowLabel = ''
-		for i in xrange(0, len(rowHeaders)):
+		for i in range(0, len(rowHeaders)):
 			if bTruncate and len(rowHeaders[i]) > length + 3:
 				rowHeaders[i] = rowHeaders[i][0:length] + '...'
 
@@ -214,7 +214,7 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 		longestLabelLen = 0
 		longestColLabel = ''
-		for i in xrange(0, len(colHeaders)):
+		for i in range(0, len(colHeaders)):
 			if bTruncate and len(colHeaders[i]) > length + 3:
 				colHeaders[i] = colHeaders[i][0:length] + '...'
 
@@ -317,8 +317,8 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 		xCell = []
 		yCell = []
 		tooltips = []
-		for x in xrange(0, len(colHeaders)):
-			for y in xrange(0, len(rowHeaders)):
+		for x in range(0, len(colHeaders)):
+			for y in range(0, len(rowHeaders)):
 				xCell.append(x)
 				yCell.append(y)
 
@@ -380,11 +380,11 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 
 		# row and column labels
 		labelOffset = 0.5 * (yLabelBounds.height / cellSizeYPer)
-		for i in xrange(0, len(rowHeaders)):
+		for i in range(0, len(rowHeaders)):
 			axisHeatmap.text(matrix.shape[1] - 0.5, i - labelOffset, '  ' + rowHeaders[leafIndex1[i]], horizontalalignment="left")
 
 		labelOffset = 0.5 * (xLabelBounds.width / cellSizeXPer)
-		for i in xrange(0, len(colHeaders)):
+		for i in range(0, len(colHeaders)):
 			axisHeatmap.text(i - labelOffset, -0.5, '  ' + colHeaders[leafIndex2[i]], rotation='vertical', verticalalignment="top")
 
 		# plot colour map legend
@@ -400,17 +400,17 @@ class HeatmapPlot(AbstractMultiGroupPlotPlugin):
 		colourBar.set_ticklabels(['%.1f' % minValue, '%.1f' % (0.5 * (maxValue - minValue) + minValue), '%.1f' % maxValue])
 
 		# plot column and row lines
-		for i in xrange(0, len(rowHeaders)):
+		for i in range(0, len(rowHeaders)):
 			axisHeatmap.plot([-0.5, len(colHeaders) - 0.5], [i - 0.5, i - 0.5], color='white', linestyle='-', linewidth=1.5)
 
-		for i in xrange(0, len(colHeaders)):
+		for i in range(0, len(colHeaders)):
 			axisHeatmap.plot([i - 0.5, i - 0.5], [-0.5, len(rowHeaders) - 0.5], color='white', linestyle='-', linewidth=1.5)
 
 		# plot legend
 		if self.legendPos != -1:
 			groupRecs = []
 			groups = []
-			for group, colour in groupColours.iteritems():
+			for group, colour in groupColours.items():
 				groupRecs.append(Rectangle((0, 0), 1, 1, fc=colour))
 				groups.append(group)
 

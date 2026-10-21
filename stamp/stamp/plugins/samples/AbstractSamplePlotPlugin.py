@@ -154,7 +154,7 @@ class AbstractSamplePlotPlugin(FigureCanvas):
 		emptyAxis.set_yticks([])
 		emptyAxis.set_xticks([])
 		
-		for loc, spine in emptyAxis.spines.iteritems():
+		for loc, spine in emptyAxis.spines.items():
 			if loc in ['right','top']:
 					spine.set_color('none') 
 		

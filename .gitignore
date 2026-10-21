@@ -5,3 +5,5 @@ build/
 dist/
 *.dmg
 .venv/
+.worktrees/
+.pytest_cache/

@@ -142,7 +142,7 @@ class SeqHistogram(AbstractSamplePlotPlugin):
 		for line in axesHist.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 		
-		for loc, spine in axesHist.spines.iteritems():
+		for loc, spine in axesHist.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:

@@ -46,7 +46,7 @@ class GroupProfile:
 		self.numParentCategories = 0
 				
 	def getFeatures(self):
-		return self.profileDict.keys()
+		return list(self.profileDict.keys())
 		
 	def getNumFeatures(self):
 		return len(self.profileDict)
@@ -64,11 +64,11 @@ class GroupProfile:
 		profile = self.profileDict[feature]
 
 		data1 = []
-		for i in xrange(0, len(self.samplesInGroup1)):
+		for i in range(0, len(self.samplesInGroup1)):
 			data1.append(profile.featureCounts[i])
 			
 		data2 = []
-		for i in xrange(len(self.samplesInGroup1), len(profile.featureCounts)):
+		for i in range(len(self.samplesInGroup1), len(profile.featureCounts)):
 			data2.append(profile.featureCounts[i])
 		
 		return data1, data2
@@ -77,17 +77,17 @@ class GroupProfile:
 		profile = self.profileDict[feature]
 
 		data1 = []
-		for i in xrange(0, len(self.samplesInGroup1)):
+		for i in range(0, len(self.samplesInGroup1)):
 			data1.append(profile.parentCounts[i])
 			
 		data2 = []
-		for i in xrange(len(self.samplesInGroup1), len(profile.parentCounts)):
+		for i in range(len(self.samplesInGroup1), len(profile.parentCounts)):
 			data2.append(profile.parentCounts[i])
 		
 		return data1, data2
 		
 	def getFeatureCountsAll(self):
-		return self.getActiveFeatureCounts(self.profileDict.keys())
+		return self.getActiveFeatureCounts(list(self.profileDict.keys()))
 
 	def getActiveFeatureCounts(self, activeFeatures):
 		seqGroup1 = [] 
@@ -102,7 +102,7 @@ class GroupProfile:
 	def getParentFeatureCountsAll(self):
 		parentSeqGroup1 = [] 
 		parentSeqGroup2 = []
-		for feature in self.profileDict.keys():
+		for feature in list(self.profileDict.keys()):
 			data1, data2 = self.getParentFeatureCounts(feature)
 			parentSeqGroup1.append(data1)
 			parentSeqGroup2.append(data2)
@@ -113,7 +113,7 @@ class GroupProfile:
 		profile = self.profileDict[feature]
 
 		data1 = []
-		for i in xrange(0, len(self.samplesInGroup1)):
+		for i in range(0, len(self.samplesInGroup1)):
 			fc = float(profile.featureCounts[i])
 			pc = profile.parentCounts[i]
 			if pc > 0:
@@ -122,7 +122,7 @@ class GroupProfile:
 				data1.append(0.0)
 			
 		data2 = []
-		for i in xrange(len(self.samplesInGroup1), len(profile.featureCounts)):
+		for i in range(len(self.samplesInGroup1), len(profile.featureCounts)):
 			fc = float(profile.featureCounts[i])
 			pc = profile.parentCounts[i]
 			if pc > 0:
@@ -133,7 +133,7 @@ class GroupProfile:
 		return data1, data2
 		
 	def getFeatureProportionsAll(self):
-		return self.getActiveFeatureProportions(self.profileDict.keys())
+		return self.getActiveFeatureProportions(list(self.profileDict.keys()))
 	
 	def getActiveFeatureProportions(self, activeFeatures):
 		groupData1 = [] 
@@ -149,13 +149,13 @@ class GroupProfile:
 		samples = self.samplesInGroup1 + self.samplesInGroup2
 		
 		featureMatrix = []
-		for i in xrange(0, len(samples)):
+		for i in range(0, len(samples)):
 			featureMatrix.append([])
 
 		for feature in self.profileDict:
 			data = self.profileDict[feature]
 			
-			for i in xrange(0, len(samples)):
+			for i in range(0, len(samples)):
 				if data.parentCounts[i] > 0:
 					featureMatrix[i].append(float(data.featureCounts[i]) / data.parentCounts[i])
 				else:

@@ -34,8 +34,8 @@ class StampIO(object):
 	def read(self, filename):
 		errMsg = None
 		
-		fin = open(filename, 'U')
-		data = map(string.strip, fin.readlines())
+		fin = open(filename, newline=None)
+		data = list(map(str.strip, fin.readlines()))
 		fin.close()
 
 		profileTree = ProfileTree()
@@ -59,20 +59,20 @@ class StampIO(object):
 		# construct profile tree
 		try:
 			profileTree.numSeqInSample = [0] * profileTree.numSamples()
-			for i in xrange(1, len(data)):
+			for i in range(1, len(data)):
 				# ignore blank lines
 				if data[i].strip() == "":
 					continue
 
 				lineSplit = data[i].split('\t')
-				lineSplit = map(string.strip, lineSplit)
+				lineSplit = list(map(str.strip, lineSplit))
 				
 				categories = lineSplit[0:profileTree.numHierarchicalLevels()]
 				countData = [float(count) for count in lineSplit[profileTree.numHierarchicalLevels():]]
 				
 				# check for unclassified categories
 				taxa = ''
-				for j in xrange(0, len(categories)):
+				for j in range(0, len(categories)):
 					if self.isUnclassified(categories[j]):
 						categories[j] = 'Unclassified ' + taxa
 						categories[j] = categories[j].rstrip()
@@ -90,12 +90,12 @@ class StampIO(object):
 					curNode = node
 					
 				# add count data to leaf node
-				for j in xrange(0, len(profileTree.sampleNames)):
+				for j in range(0, len(profileTree.sampleNames)):
 					sampleName = profileTree.sampleNames[j]
 					curNode.countData[sampleName] = curNode.countData.get(sampleName, 0) + countData[j]
 						
 				# add count data to total sequence count
-				for j in xrange(0, len(countData)):
+				for j in range(0, len(countData)):
 					profileTree.numSeqInSample[j] += countData[j]
 		except:
 			errMsg = 'Failed to correctly parse line: ' + str(i+1)
@@ -122,7 +122,7 @@ class StampIO(object):
 			
 		# get hierarchical and sample names
 		headings = data[0].split('\t')
-		headings = map(string.strip, headings)
+		headings = list(map(str.strip, headings))
 		profileTree.hierarchyHeadings = headings[0:firstSampleIndex]
 		profileTree.sampleNames = headings[firstSampleIndex:]
 		
@@ -131,7 +131,7 @@ class StampIO(object):
 		parent = defaultdict(dict)
 		for line in data:
 			lineSplit = line.split('\t')
-			lineSplit = map(string.strip, lineSplit)
+			lineSplit = list(map(str.strip, lineSplit))
 				
 			categories = lineSplit[0:numHierarchicalLevels]
 			for r, value in enumerate(categories):

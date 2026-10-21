@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from loadDataDlgUI import Ui_loadDataDlg
+from .loadDataDlgUI import Ui_loadDataDlg
 
 class LoadDataDlg(QtGui.QDialog):
 	def __init__(self, preferences, parent=None, info=None):

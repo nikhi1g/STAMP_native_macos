@@ -109,7 +109,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		lowerCIs = []
 		upperCIs = []
 		if self.bPvalueFilter:
-			for i in xrange(0, len(statsResults.postHocResults.labels)):
+			for i in range(0, len(statsResults.postHocResults.labels)):
 				# get numeric p-value
 				if isinstance(statsResults.postHocResults.pValues[i], str):
 					pValueSplit = statsResults.postHocResults.pValues[i].split(' ')
@@ -140,7 +140,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			
 		# *** Determine dominant group for each contrast (i.e., row).
 		#  Adjust labels and effect sizes to reflect the dominant group.
-		for i in xrange(0, len(effectSizes)):
+		for i in range(0, len(effectSizes)):
 			labelSplit = labels[i].split(':')
 			if effectSizes[i] > 0.0:
 				lowerCIs[i] = effectSizes[i] - lowerCIs[i]
@@ -152,7 +152,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 				effectSizes[i] = -effectSizes[i]
 				
 		# *** Sort data
-		data = zip(labels, pValues, effectSizes, lowerCIs, upperCIs)
+		data = list(zip(labels, pValues, effectSizes, lowerCIs, upperCIs))
 
 		if self.sortingField == 'p-values':
 			data = sorted(data, key = operator.itemgetter(1), reverse = True)
@@ -161,7 +161,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		elif self.sortingField == 'Group labels':
 			data = sorted(data, key = lambda row: row[0].lower(), reverse = True)
 
-		labels, pValues, effectSizes, lowerCIs, upperCIs = zip(*data)
+		labels, pValues, effectSizes, lowerCIs, upperCIs = list(zip(*data))
 		labels = list(labels)
 		pValues = list(pValues)
 		effectSizes = list(effectSizes)
@@ -170,7 +170,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		
 		# *** Make list of which group is dominant in each contrast.
 		dominantGroup = {}
-		for i in xrange(0, len(effectSizes)):
+		for i in range(0, len(effectSizes)):
 			labelSplit = labels[i].split(':')
 			groupName = labelSplit[0].strip()
 
@@ -198,7 +198,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		if self.preferences['Truncate feature names']:
 			length = self.preferences['Length of truncated feature names']
 			
-			for i in xrange(0, len(labels)):
+			for i in range(0, len(labels)):
 				if len(labels[i]) > length+3:
 					adjustedLabels[i] = labels[i][0:length] + '...'
 				
@@ -262,7 +262,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			
 			# get relative frequency and standard deviation of each contrast
 			maxPercentage = 0
-			for i in xrange(0, len(labels)):
+			for i in range(0, len(labels)):
 				splitLabel = labels[i].split(':')
 				groupName1 = splitLabel[0].strip()
 				groupName2 = splitLabel[1].strip()
@@ -318,7 +318,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 			for line in axNumSeq.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 					
-			for loc, spine in axNumSeq.spines.iteritems():
+			for loc, spine in axNumSeq.spines.items():
 				if loc in ['left', 'right','top']:
 					spine.set_color('none') 
 				else:
@@ -373,7 +373,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 		for line in axErrorbar.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 
-		for loc, spine in axErrorbar.spines.iteritems():
+		for loc, spine in axErrorbar.spines.items():
 			if loc in ['left','right','top']:
 				spine.set_color('none') 
 			else:
@@ -391,7 +391,7 @@ class PostHocPlot(AbstractMultiGroupPlotPlugin):
 				a.tick1On=False
 				a.tick2On=False
 				
-			for loc, spine in axRight.spines.iteritems():
+			for loc, spine in axRight.spines.items():
 				spine.set_color('none') 
 
 		self.updateGeometry()

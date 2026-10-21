@@ -56,10 +56,10 @@ class Metadata:
 		return len(self.sampleNames)
 		
 	def getSampleNames(self):
-		return self.metadataDict.keys()
+		return list(self.metadataDict.keys())
 		
 	def getFeatures(self):
-		return self.metadataDict[self.metadataDict.keys()[0]].keys()
+		return list(self.metadataDict[list(self.metadataDict.keys())[0]].keys())
 		
 	def getTableData(self):
 		table = []
@@ -85,7 +85,7 @@ class Metadata:
 		
 		profileTree.groupDict = {}
 		profileTree.groupActive = {}
-		for (sampleName, sampleDict) in self.metadataDict.items():
+		for (sampleName, sampleDict) in list(self.metadataDict.items()):
 			groupName = sampleDict[field]
 			if groupName in profileTree.groupDict:
 				profileTree.groupDict[groupName].append(sampleName)

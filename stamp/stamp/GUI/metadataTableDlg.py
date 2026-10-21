@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from metadataTableDlgUI import Ui_MetadataTableDlg
+from .metadataTableDlgUI import Ui_MetadataTableDlg
 
 from stamp.metagenomics.TableHelper import QTableWidgetNumericItem
 
@@ -46,23 +46,23 @@ class MetadataTableDlg(QtGui.QDockWidget):
 		self.metadata = None
 		
 	def checkAll(self):
-		for r in xrange(0, self.ui.tableMetadata.rowCount()):
+		for r in range(0, self.ui.tableMetadata.rowCount()):
 			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Checked)
 		self.updateActiveSamples()
 			
 	def uncheckAll(self):
-		for r in xrange(0, self.ui.tableMetadata.rowCount()):
+		for r in range(0, self.ui.tableMetadata.rowCount()):
 			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Unchecked)
 		self.updateActiveSamples()
 			
 	def checkSpecifiedSamples(self, sampleIds):
-		for r in xrange(0, self.ui.tableMetadata.rowCount()):
+		for r in range(0, self.ui.tableMetadata.rowCount()):
 			if str(self.ui.tableMetadata.item(r,0).text()) in sampleIds:
 				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Checked)
 		self.updateActiveSamples()
 				
 	def uncheckSpecifiedSamples(self, sampleIds):
-		for r in xrange(0, self.ui.tableMetadata.rowCount()):
+		for r in range(0, self.ui.tableMetadata.rowCount()):
 			if str(self.ui.tableMetadata.item(r,0).text()) in sampleIds:
 				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Unchecked)
 		self.updateActiveSamples()
@@ -122,7 +122,7 @@ class MetadataTableDlg(QtGui.QDockWidget):
 
 	def updateActiveSamples(self):
 		activeSamples = []
-		for r in xrange(0, self.ui.tableMetadata.rowCount()):
+		for r in range(0, self.ui.tableMetadata.rowCount()):
 			if self.ui.tableMetadata.item(r,0).checkState() == QtCore.Qt.Checked:
 				activeSamples.append(str(self.ui.tableMetadata.item(r,0).text()))
 				
@@ -151,10 +151,10 @@ class MetadataTableDlg(QtGui.QDockWidget):
 			for field in headers[1:]:
 				isNumeric.append(self.metadata.isNumericalData(field))
 			
-			for i in xrange(0, len(table)):
+			for i in range(0, len(table)):
 				row = table[i]
 
-				for j in xrange(0, len(row)):
+				for j in range(0, len(row)):
 					if isNumeric[j]:
 						item = QTableWidgetNumericItem(row[j])
 					else:

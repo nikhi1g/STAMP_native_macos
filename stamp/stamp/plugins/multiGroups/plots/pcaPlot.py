@@ -257,8 +257,8 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 			markers = ['o', 'o', 'o', 'o', 'o', 'o', 'o', 'o']
 				
 		colours = []
-		for i in xrange(0, len(profile.activeSamplesInGroups)):
-			for j in xrange(0, len(profile.activeSamplesInGroups[i])):
+		for i in range(0, len(profile.activeSamplesInGroups)):
+			for j in range(0, len(profile.activeSamplesInGroups[i])):
 				colours.append(str(self.preferences['Group colours'][profile.activeGroupNames[i]].name()))
 
 		# scatter plots
@@ -266,7 +266,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		
 		start = 0
 		end = 0
-		for i in xrange(0, len(profile.activeSamplesInGroups)):
+		for i in range(0, len(profile.activeSamplesInGroups)):
 			samplesInGroup = len(profile.activeSamplesInGroups[i])
 			end = start + samplesInGroup
 			try:
@@ -291,7 +291,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		if (bPlot2D == False) and self.bShowPC3vsPC2:
 			start = 0
 			end = 0
-			for i in xrange(0, len(profile.activeSamplesInGroups)):
+			for i in range(0, len(profile.activeSamplesInGroups)):
 				samplesInGroup = len(profile.activeSamplesInGroups[i])
 				end = start + samplesInGroup
 				try:
@@ -319,7 +319,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		if (bPlot2D == False) and self.bShowPC1vsPC3:
 			start = 0
 			end = 0
-			for i in xrange(0, len(profile.activeSamplesInGroups)):
+			for i in range(0, len(profile.activeSamplesInGroups)):
 				samplesInGroup = len(profile.activeSamplesInGroups[i])
 				end = start + samplesInGroup
 				try:
@@ -368,7 +368,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 			for line in axes.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 				
-			for loc, spine in axes.spines.iteritems():
+			for loc, spine in axes.spines.items():
 				if loc in ['right','top']:
 					spine.set_color('none') 
 				else:
@@ -377,8 +377,8 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 
 		# *** Handle mouse events
 		tooltips = []
-		for i in xrange(0, len(profile.activeSamplesInGroups)):
-			for j in xrange(0, len(profile.activeSamplesInGroups[i])):
+		for i in range(0, len(profile.activeSamplesInGroups)):
+			for j in range(0, len(profile.activeSamplesInGroups[i])):
 				tooltip = profile.activeGroupNames[i] + ': ' + profile.activeSamplesInGroups[i][j]
 				tooltips.append(tooltip)
 			
@@ -389,7 +389,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		if self.legendPos != -1:
 			legendItems = []
 			groupNames = []
-			for i in xrange(0, len(profile.activeSamplesInGroups)):
+			for i in range(0, len(profile.activeSamplesInGroups)):
 				legendItem = Rectangle((0, 0), 1, 1, fc=str(self.preferences['Group colours'][profile.activeGroupNames[i]].name()))
 				legendItems.append(legendItem)
 				groupNames.append(profile.activeGroupNames[i])

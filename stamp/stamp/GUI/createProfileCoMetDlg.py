@@ -22,7 +22,7 @@
 import string
 
 from PyQt4 import QtGui, QtCore
-from createProfileCoMetUI import Ui_CreateProfileCoMetDlg
+from .createProfileCoMetUI import Ui_CreateProfileCoMetDlg
 
 class ProfileRow():
 	def __init__(self):
@@ -68,8 +68,8 @@ class CreateProfileCoMetDlg(QtGui.QDialog):
 		profileIndex = 0
 		sampleNames = []
 		for file in self.selectedFiles:
-			fin = open(file, 'U')
-			data = map(string.strip, fin.readlines())
+			fin = open(file, newline=None)
+			data = list(map(str.strip, fin.readlines()))
 			fin.close()
 			
 			sampleName = file[file.rfind('/')+1:file.find('.')]
@@ -121,7 +121,7 @@ class CreateProfileCoMetDlg(QtGui.QDialog):
 			fout.write('\t' + sampleName)
 		fout.write('\n')
 			
-		for key in profileDict.keys():
+		for key in list(profileDict.keys()):
 			row = profileDict[key]
 			for h in row.hierarchy:
 				fout.write(h + '\t')

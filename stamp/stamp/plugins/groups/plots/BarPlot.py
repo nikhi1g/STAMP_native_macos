@@ -89,7 +89,7 @@ class BarPlot(AbstractGroupPlotPlugin):
 		
 		longestLabelLen = 0
 		longestLabel = ''
-		for i in xrange(0, len(sampleNames)):
+		for i in range(0, len(sampleNames)):
 			if bTruncate and len(sampleNames[i]) > length+3:
 				sampleNames[i] = sampleNames[i][0:length] + '...'
 				
@@ -168,7 +168,7 @@ class BarPlot(AbstractGroupPlotPlugin):
 			a.tick1On=False
 			a.tick2On=False
 			
-		for loc, spine in axesBar.spines.iteritems():
+		for loc, spine in axesBar.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:

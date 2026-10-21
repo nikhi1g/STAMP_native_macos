@@ -22,7 +22,7 @@
 import string
 
 from PyQt4 import QtGui, QtCore
-from createProfileMothurUI import Ui_CreateProfileMothurDlg
+from .createProfileMothurUI import Ui_CreateProfileMothurDlg
 
 class ProfileRow():
 	def __init__(self):
@@ -75,8 +75,8 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 	def createProfile(self):
 		# determine group for each sequence ID
 		if self.groupsFile != None:
-			fin = open(self.groupsFile, 'U')
-			data = map(string.strip, fin.readlines())
+			fin = open(self.groupsFile, newline=None)
+			data = list(map(str.strip, fin.readlines()))
 			fin.close()
 		else:
 			QtGui.QMessageBox.information(self, 'Missing data', 'A Group file must be specified.', QtGui.QMessageBox.Ok)
@@ -102,8 +102,8 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 			
 		# determine representative sequence for OTUs
 		if self.namesFile != None:
-			fin = open(self.namesFile, 'U')
-			data = map(string.strip, fin.readlines())
+			fin = open(self.namesFile, newline=None)
+			data = list(map(str.strip, fin.readlines()))
 			fin.close()
 
 			seqIdToSeqIds = {}
@@ -112,14 +112,14 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 				seqId = lineSplit[0].strip()
 				
 				seqIds = lineSplit[1].split(',')
-				map(string.strip, seqIds)
+				list(map(str.strip, seqIds))
 				seqIdToSeqIds[seqId] = seqIds
 				
 		# read taxonomy file and create profile for each sample
 		deepestRank = 0
 
-		fin = open(self.taxonomyFile, 'U')
-		data = map(string.strip, fin.readlines())
+		fin = open(self.taxonomyFile, newline=None)
+		data = list(map(str.strip, fin.readlines()))
 		fin.close()
 
 		sampleProfiles = {}
@@ -160,7 +160,7 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 
 		taxonomicRanks = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6', 'Level 7', 'Level 8', 'Level 9', 'Level 10', 'Level 11', 'Level 12']
 		fout.write(taxonomicRanks[0])
-		for r in xrange(1, deepestRank):
+		for r in range(1, deepestRank):
 			fout.write('\t' + taxonomicRanks[r])
 
 		for sampleId in sampleIds:
@@ -172,10 +172,10 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 			classification = classification[0:len(classification)-1]
 			
 			fout.write(classification[0])
-			for c in xrange(1, len(classification)):
+			for c in range(1, len(classification)):
 				fout.write('\t' + classification[c])
 				
-			for c in xrange(len(classification), deepestRank):
+			for c in range(len(classification), deepestRank):
 				fout.write('\t' + 'unclassified')
 				
 			counts = sampleProfiles[classificationStr]

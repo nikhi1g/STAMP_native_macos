@@ -104,9 +104,9 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 			parentField2.append(parentSeq2)
 			features.append(feature)
 
-		fields = zip(field1, field2, parentField1, parentField2, features)
+		fields = list(zip(field1, field2, parentField1, parentField2, features))
 		fields.sort(reverse = True)
-		field1, field2, parentField1, parentField2, features = zip(*fields)
+		field1, field2, parentField1, parentField2, features = list(zip(*fields))
 		
 		if len(field1) > self.numFeaturesToShow:
 			field1 = list(field1[0:self.numFeaturesToShow])
@@ -125,7 +125,7 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		confInter2 = []
 		
 		if self.fieldToPlot == 'Number of sequences':
-			for i in xrange(0, len(field1)):
+			for i in range(0, len(field1)):
 				if self.bShowCIs:
 					lowerCI, upperCI, p = wilsonCI.run(field1[i], parentField1[i], 0.95, 1.96)
 					confInter1.append(max((p - lowerCI)*parentField1[i], 0))
@@ -137,7 +137,7 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 					confInter2.append(0)
 				
 		elif self.fieldToPlot == 'Proportion of sequences (%)':
-			for i in xrange(0, len(field1)):
+			for i in range(0, len(field1)):
 				if self.bShowCIs:
 					lowerCI, upperCI, p = wilsonCI.run(field1[i], parentField1[i], 0.95, 1.96)
 					confInter1.append(max((p - lowerCI)*100, 0))
@@ -159,17 +159,17 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 		if self.preferences['Truncate feature names']:
 			length = self.preferences['Length of truncated feature names']
 						
-			for i in xrange(0, len(truncatedNames)):
+			for i in range(0, len(truncatedNames)):
 				if len(truncatedNames[i]) > length+3:
 					truncatedNames[i] = truncatedNames[i][0:length] + '...'
 					
-			for i in xrange(0, len(highlightedFeatures)):
+			for i in range(0, len(highlightedFeatures)):
 				if len(highlightedFeatures[i]) > length+3:
 					highlightedFeatures[i] = highlightedFeatures[i][0:length] + '...'
 					
 		# *** Find longest label
 		longestLabelLen = 0
-		for i in xrange(0, len(truncatedNames)):
+		for i in range(0, len(truncatedNames)):
 			if len(truncatedNames[i]) > longestLabelLen:
 				longestLabelLen = len(truncatedNames[i])
 				longestLabel = truncatedNames[i]
@@ -222,7 +222,7 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 			
 			x = []
 			y = []
-			for i in xrange(0, len(features)):
+			for i in range(0, len(features)):
 				pValue = float(statsResults.getFeatureStatistic(features[i], 'pValuesCorrected'))
 				if pValue <= self.pValueThreshold:
 					x.append(i*colWidth + barWidth)
@@ -248,7 +248,7 @@ class ProfileBarPlots(AbstractSamplePlotPlugin):
 			a.tick1On=False
 			a.tick2On=False
 			
-		for loc, spine in axesBar.spines.iteritems():
+		for loc, spine in axesBar.spines.items():
 			if loc in ['right','top']:
 				spine.set_color('none') 
 			else:

@@ -150,11 +150,11 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		if self.preferences['Truncate feature names']:
 			length = self.preferences['Length of truncated feature names']
 			
-			for i in xrange(0, len(features)):
+			for i in range(0, len(features)):
 				if len(features[i]) > length+3:
 					features[i] = features[i][0:length] + '...'
 								
-			for i in xrange(0, len(highlightedFeatures)):
+			for i in range(0, len(highlightedFeatures)):
 				if len(highlightedFeatures[i]) > length+3:
 					highlightedFeatures[i] = highlightedFeatures[i][0:length] + '...'
 				
@@ -162,7 +162,7 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		dominateInSample2 = []
 		percentage1 = []
 		percentage2 = []
-		for i in xrange(0, len(effectSizes)):
+		for i in range(0, len(effectSizes)):
 			percentage1.append(float(seqs1[i])*100 / parentSeqs1[i])
 			percentage2.append(float(seqs2[i])*100 / parentSeqs2[i])
 			
@@ -294,7 +294,7 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 			for line in axNumSeq.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 					
-			for loc, spine in axNumSeq.spines.iteritems():
+			for loc, spine in axNumSeq.spines.items():
 				if loc in ['left', 'right','top']:
 					spine.set_color('none') 
 				else:
@@ -352,7 +352,7 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 		for line in axErrorbar.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 
-		for loc, spine in axErrorbar.spines.iteritems():
+		for loc, spine in axErrorbar.spines.items():
 			if loc in ['left','right','top']:
 				spine.set_color('none') 
 			else:
@@ -370,7 +370,7 @@ class ExtendedErrorBar(AbstractSamplePlotPlugin):
 				a.tick1On=False
 				a.tick2On=False
 				
-			for loc, spine in axRight.spines.iteritems():
+			for loc, spine in axRight.spines.items():
 				spine.set_color('none') 
 		
 		# *** Legend

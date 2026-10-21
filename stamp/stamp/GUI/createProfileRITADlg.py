@@ -22,7 +22,7 @@
 import string
 
 from PyQt4 import QtGui, QtCore
-from createProfileRITA_UI import Ui_CreateProfileRITADlg
+from .createProfileRITA_UI import Ui_CreateProfileRITADlg
 
 from stamp.GUI.customizeHeadingsDlg import CustomizeHeadingsDlg
 
@@ -89,8 +89,8 @@ class CreateProfileRITADlg(QtGui.QDialog):
 		mostSpecificRankIndex = 0
 		ranks = ['DOMAIN', 'PHYLUM', 'CLASS', 'ORDER', 'FAMILY', 'GENUS', 'SPECIES']
 		for file in self.selectedFiles:
-			fin = open(file, 'U')
-			data = map(string.strip, fin.readlines())
+			fin = open(file, newline=None)
+			data = list(map(str.strip, fin.readlines()))
 			fin.close()
 			
 			sampleName = file[file.rfind('/')+1:file.find('.')]
@@ -100,7 +100,7 @@ class CreateProfileRITADlg(QtGui.QDialog):
 			
 			# add profile info
 			categories = set([])
-			for i in xrange(1, len(data)):
+			for i in range(1, len(data)):
 				line = data[i]
 				if line == "":
 						continue	# skip blank lines
@@ -155,12 +155,12 @@ class CreateProfileRITADlg(QtGui.QDialog):
 			fout.write('\t' + sampleName)
 		fout.write('\n')
 			
-		for key in profileDict.keys():
+		for key in list(profileDict.keys()):
 			row = profileDict[key]
 			hierarchy = row.hierarchy.split(';')
-			for h in xrange(len(hierarchy)-1, -1, -1):
+			for h in range(len(hierarchy)-1, -1, -1):
 				fout.write(hierarchy[h] + '\t')
-			for i in xrange(0, mostSpecificRankIndex-len(hierarchy)+1):
+			for i in range(0, mostSpecificRankIndex-len(hierarchy)+1):
 				fout.write('Unclassified' + '\t')
 			
 			fout.write(str(row.countData[0]))

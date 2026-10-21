@@ -32,7 +32,7 @@ class MgRastIO():
       profileCol: column containing features to create profile for
       parentCol: column containing parental features/group in hierarchy
     ''' 
-    fin = open(filename, 'U')
+    fin = open(filename, newline=None)
     data = fin.readlines()
     fin.close()
        
@@ -41,11 +41,11 @@ class MgRastIO():
     parentDict = {}
     profileHierarchyDict = {}
     totalSeq = 0
-    for i in xrange(1, len(data)):
+    for i in range(1, len(data)):
       lineSplit = data[i].split('\t')
           
       # replace blank feature names by the MRA with a defined name
-      for j in xrange(1, profileCol+1):
+      for j in range(1, profileCol+1):
         if lineSplit[j] == '':
           lineSplit[j] = lineSplit[j-1]
           

@@ -140,7 +140,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		
 		# *** Handle mouse events
 		tooltips = []
-		for i in xrange(0, len(field1)):
+		for i in range(0, len(field1)):
 			tooltip = features[i] + '\n\n'
 			tooltip += 'Sequences in ' + profile.sampleNames[0] + ': ' + str(tables[i][1]) + '\n'
 			tooltip += 'Sequences in ' + profile.sampleNames[1] + ': ' + str(tables[i][2]) + '\n\n' 
@@ -176,7 +176,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		highlightedField1 = []
 		highlightedField2 = []
 		highlighColours = []
-		for i in xrange(0, len(field1)):
+		for i in range(0, len(field1)):
 			if field1[i] > field2[i]:
 				colours.append(profile1Colour)
 			else:
@@ -196,7 +196,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		if self.bShowCIs:
 			xlist = []
 			ylist = []
-			for i in xrange(0, len(field1)):
+			for i in range(0, len(field1)):
 				# horizontal CIs
 				xlist.append(confInter1[i][0])
 				xlist.append(confInter1[i][1])
@@ -235,7 +235,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 		for line in axesScatter.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in axesScatter.spines.iteritems():
+		for loc, spine in axesScatter.spines.items():
 			spine.set_color(axesColour)
 
 		# plot histograms
@@ -254,7 +254,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 			for line in axesScatter.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 
-			for loc, spine in axesScatter.spines.iteritems():
+			for loc, spine in axesScatter.spines.items():
 					if loc in ['right','top']:
 							spine.set_color('none')
 					else:
@@ -290,7 +290,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 				for line in axesTopHistogram.xaxis.get_ticklines(): 
 					line.set_color(axesColour)
 
-				for loc, spine in axesTopHistogram.spines.iteritems():
+				for loc, spine in axesTopHistogram.spines.items():
 						if loc in ['right','top']:
 								spine.set_color('none')
 						else:
@@ -310,7 +310,7 @@ class ScatterPlot(AbstractSamplePlotPlugin):
 				for line in axesRightHistogram.xaxis.get_ticklines(): 
 					line.set_color(axesColour)
 
-				for loc, spine in axesRightHistogram.spines.iteritems():
+				for loc, spine in axesRightHistogram.spines.items():
 						if loc in ['right','top']:
 								spine.set_color('none') 
 						else:

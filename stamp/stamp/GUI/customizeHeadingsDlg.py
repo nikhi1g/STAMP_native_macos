@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from customizeHeadingsUI import Ui_CreateProfileDlg
+from .customizeHeadingsUI import Ui_CreateProfileDlg
 
 class CustomizeHeadingsDlg(QtGui.QDialog):
   def __init__(self, parent=None):

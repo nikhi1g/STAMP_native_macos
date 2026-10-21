@@ -5,7 +5,7 @@ Dialog box used to select features which should be ignored.
 '''
 
 from PyQt4 import QtGui, QtCore
-from multCompCorrectionInfoUI import Ui_multCompCorrectionInfoDlg
+from .multCompCorrectionInfoUI import Ui_multCompCorrectionInfoDlg
 
 class MultCompCorrectionInfoDlg(QtGui.QDialog):
   def __init__(self, parent=None, info=None):

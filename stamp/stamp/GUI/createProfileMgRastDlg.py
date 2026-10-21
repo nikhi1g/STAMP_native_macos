@@ -24,7 +24,7 @@
 import string
 
 from PyQt4 import QtGui, QtCore
-from createProfileMgRastUI import Ui_CreateProfileMgRastDlg
+from .createProfileMgRastUI import Ui_CreateProfileMgRastDlg
 
 from stamp.GUI.customizeHeadingsDlg import CustomizeHeadingsDlg
 
@@ -61,8 +61,8 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			self.preferences['Last directory'] = self.selectedFile[0:self.selectedFile.lastIndexOf('/')]
 			
 			# read profile information from file
-			fin = open(self.selectedFile, 'U')
-			self.data = map(string.strip, fin.readlines())
+			fin = open(self.selectedFile, newline=None)
+			self.data = list(map(str.strip, fin.readlines()))
 			fin.close()
 			
 			# get header data
@@ -85,10 +85,10 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			else:
 				self.startIndex = 2
 					
-			for i in xrange(self.startIndex, self.header.index('abundance')):
+			for i in range(self.startIndex, self.header.index('abundance')):
 				self.headings.append(self.header[i])
 					
-			for i in xrange(0, 8-len(self.headings)):
+			for i in range(0, 8-len(self.headings)):
 				self.headings.append('')
 		
 			self.ui.btnCustomizeHeadings.setEnabled(True)
@@ -137,7 +137,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 
 		# determine samples in profile
 		sampleNames = []
-		for i in xrange(1, len(self.data)):
+		for i in range(1, len(self.data)):
 			sampleId = self.data[i].split(splitCh)[0]
 			if sampleId not in sampleNames:
 				sampleNames.append(sampleId)
@@ -146,10 +146,10 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 		profileDict = {}
 		
 		parentMap = {}
-		for i in xrange(1, dataIndex-hierarchyStartIndex):
+		for i in range(1, dataIndex-hierarchyStartIndex):
 			parentMap[i] = {}
 			
-		for i in xrange(1, len(self.data)):
+		for i in range(1, len(self.data)):
 			if self.data[i] == "":
 				continue	# skip blank lines
 			
@@ -162,7 +162,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			hierarchy = lineSplit[hierarchyStartIndex:dataIndex]
 			
 			# replace '-' categories with parent
-			for i in xrange(1, len(hierarchy)):
+			for i in range(1, len(hierarchy)):
 				if hierarchy[i] == '-':
 					if self.header[1] == 'domain':
 						if 'Unclassified' not in hierarchy[i-1]:
@@ -173,7 +173,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 						hierarchy[i] = hierarchy[i-1]
 					
 			# force MG-RAST profile to be strictly tree-like
-			for i in xrange(1, len(hierarchy)): 
+			for i in range(1, len(hierarchy)): 
 				parent = '-'.join(hierarchy[0:i])
 				child = hierarchy[i]
 				
@@ -218,7 +218,7 @@ class CreateProfileMgRastDlg(QtGui.QDialog):
 			fout.write('\t' + sampleName)
 		fout.write('\n')
 			
-		for key in profileDict.keys():
+		for key in list(profileDict.keys()):
 			row = profileDict[key]
 			for h in row.hierarchy:
 				fout.write(h + '\t')

@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from groupLegendDlgUI import Ui_GroupLegendDlg
+from .groupLegendDlgUI import Ui_GroupLegendDlg
 
 class GroupLegendDlg(QtGui.QDockWidget):
 	def __init__(self, preferences, parent=None, info=None):
@@ -103,7 +103,7 @@ class GroupLegendDlg(QtGui.QDockWidget):
 			samples = list(samples.intersection(set(self.metadata.activeSamples)))
 			
 			tooltip = ''
-			for i in xrange(0, len(samples)):
+			for i in range(0, len(samples)):
 				tooltip += samples[i]
 				if i != len(samples)-1:
 					tooltip += ', '

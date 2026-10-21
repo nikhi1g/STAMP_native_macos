@@ -42,7 +42,7 @@ class ANOVA(AbstractMultiGroupStatsTestPlugin):
 				note = 'degenerate case: at least one group contains less than 2 samples'
 				return 1.0, note
 				
-		F_value, pValue = apply(f_oneway, data)
+		F_value, pValue = f_oneway(*data)
 		if math.isnan(pValue):
 			pValue = 1.0 # invalid data for calculating p-value so assume large p-value
 			note = 'degenerate case: failed to calculate p-value'
@@ -52,5 +52,5 @@ class ANOVA(AbstractMultiGroupStatsTestPlugin):
 if __name__ == "__main__": 
 	anova = ANOVA()
 	pValueOne, pValueTwo = anova.hypothesisTest([[10, 20, 30], [20, 30, 40], [10, 30, 50, 70]])
-	print pValueOne
-	print pValueTwo
+	print(pValueOne)
+	print(pValueTwo)

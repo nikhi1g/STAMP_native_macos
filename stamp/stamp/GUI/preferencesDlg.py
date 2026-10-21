@@ -22,7 +22,7 @@
 #=======================================================================
 
 from PyQt4 import QtGui, QtCore
-from preferencesUI import Ui_preferencesDlg
+from .preferencesUI import Ui_preferencesDlg
 
 import math
 

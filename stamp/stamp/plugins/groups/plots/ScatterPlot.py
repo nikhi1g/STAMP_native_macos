@@ -101,7 +101,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		field2 = []
 		xSpread = []
 		ySpread = []
-		for i in xrange(0, len(groupData1)):
+		for i in range(0, len(groupData1)):
 			mean1 = mean(groupData1[i])
 			mean2 = mean(groupData2[i])
 			
@@ -159,7 +159,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		
 		# *** Handle mouse events
 		tooltips = []
-		for i in xrange(0, len(field1)):
+		for i in range(0, len(field1)):
 			tooltip = features[i] + '\n\n'
 			tooltip += (self.groupName1 + ' mean proportion: %.3f' % field1[i]) + '\n' 
 			tooltip += (self.groupName2 + ' mean proportion: %.3f' % field2[i]) + '\n\n' 
@@ -193,7 +193,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		highlightedField1 = []
 		highlightedField2 = []
 		highlighColours = []
-		for i in xrange(0, len(field1)):
+		for i in range(0, len(field1)):
 			if field1[i] > field2[i]:
 				colours.append(group1Colour)
 			else:
@@ -213,7 +213,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		if self.spreadMethod != 'None':
 			xlist = []
 			ylist = []
-			for i in xrange(0, len(field1)):
+			for i in range(0, len(field1)):
 				# horizontal CIs
 				xlist.append(xSpread[i][0])
 				xlist.append(xSpread[i][1])
@@ -252,7 +252,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		for line in axesScatter.xaxis.get_ticklines(): 
 			line.set_color(axesColour)
 			
-		for loc, spine in axesScatter.spines.iteritems():
+		for loc, spine in axesScatter.spines.items():
 			spine.set_color(axesColour)
 
 		# plot histograms
@@ -271,7 +271,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 			for line in axesScatter.xaxis.get_ticklines(): 
 				line.set_color(axesColour)
 
-			for loc, spine in axesScatter.spines.iteritems():
+			for loc, spine in axesScatter.spines.items():
 					if loc in ['right','top']:
 							spine.set_color('none')
 					else:
@@ -307,7 +307,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 				for line in axesTopHistogram.xaxis.get_ticklines(): 
 					line.set_color(axesColour)
 
-				for loc, spine in axesTopHistogram.spines.iteritems():
+				for loc, spine in axesTopHistogram.spines.items():
 						if loc in ['right','top']:
 								spine.set_color('none')
 						else:
@@ -327,7 +327,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 				for line in axesRightHistogram.xaxis.get_ticklines(): 
 					line.set_color(axesColour)
 
-				for loc, spine in axesRightHistogram.spines.iteritems():
+				for loc, spine in axesRightHistogram.spines.items():
 						if loc in ['right','top']:
 								spine.set_color('none') 
 						else:

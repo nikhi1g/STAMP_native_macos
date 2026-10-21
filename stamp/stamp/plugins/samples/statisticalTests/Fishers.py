@@ -70,7 +70,7 @@ class Fishers(AbstractSampleStatsTestPlugin):
 		pValueTwoSided = 0
 		pValueRight = 0
 		pValueLeft = 0
-		for i in xrange(0, min(int(round(r1)), int(round(c1)))+1):
+		for i in range(0, min(int(round(r1)), int(round(c1)))+1):
 			a = i
 			b = r1 - a
 			c = c1 - a
@@ -106,8 +106,8 @@ class Fishers(AbstractSampleStatsTestPlugin):
 if __name__ == "__main__": 
 	fishers = Fishers()
 	pValueOneSided, pValueTwoSided = fishers.hypothesisTest(11, 11, 30, 60)
-	print pValueOneSided
-	print pValueTwoSided
+	print(pValueOneSided)
+	print(pValueTwoSided)
 	
 	'''
 	fout = open('FisherTiming.csv', 'w')
