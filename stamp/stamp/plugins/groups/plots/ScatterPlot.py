@@ -23,7 +23,7 @@
 
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
 from stamp.plugins.groups.AbstractGroupPlotPlugin import AbstractGroupPlotPlugin, TestWindow, ConfigureDialog
 from stamp.plugins.groups.plots.configGUI.scatterPlotUI import Ui_ScatterPlotDialog
@@ -50,14 +50,14 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		self.bPlotFeaturesIndividually = False
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value('group: ' + self.name + '/height', 7.0).toDouble()[0]
-		self.spreadMethod = self.settings.value('group: ' + self.name + '/spread method', '2nd and 98th percentile').toString()
-		self.numBins = self.settings.value('group: ' + self.name + '/bins', 30).toInt()[0]
-		self.histogramSize = self.settings.value('group: ' + self.name + '/bin size', 0.5).toDouble()[0]
-		self.bShowHistograms = self.settings.value('group: ' + self.name + '/show histograms', True).toBool()
-		self.markerSize = self.settings.value('group: ' + self.name + '/marker size', 20).toInt()[0]
-		self.bShowR2 = self.settings.value('group: ' + self.name + '/show R2', True).toBool()
+		self.figWidth = self.settings.value('group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value('group: ' + self.name + '/height', 7.0, type=float)
+		self.spreadMethod = self.settings.value('group: ' + self.name + '/spread method', '2nd and 98th percentile', type=str)
+		self.numBins = self.settings.value('group: ' + self.name + '/bins', 30, type=int)
+		self.histogramSize = self.settings.value('group: ' + self.name + '/bin size', 0.5, type=float)
+		self.bShowHistograms = self.settings.value('group: ' + self.name + '/show histograms', True, type=bool)
+		self.markerSize = self.settings.value('group: ' + self.name + '/marker size', 20, type=int)
+		self.bShowR2 = self.settings.value('group: ' + self.name + '/show R2', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -75,12 +75,12 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 			return
 
 		if len(profile.profileDict) > 10000:
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-			reply = QtGui.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(profile.profileDict)) + ' features. ' +
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
+			reply = QtWidgets.QMessageBox.question(self, 'Continue?', 'Profile contains ' + str(len(profile.profileDict)) + ' features. ' +
 																		'It may take several seconds to generate this plot. Exploring the data at a higher hierarchy level is recommended. ' + 
-																		'Do you wish to continue?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-			QtGui.QApplication.instance().restoreOverrideCursor()
-			if reply == QtGui.QMessageBox.No:
+																		'Do you wish to continue?', QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
+			if reply == QtWidgets.QMessageBox.StandardButton.No:
 				self.emptyAxis()	
 				return
 						
@@ -257,13 +257,9 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 
 		# plot histograms
 		if not self.bShowHistograms:
-			for a in axesScatter.yaxis.majorTicks:
-					a.tick1On=True
-					a.tick2On=False
+			axesScatter.tick_params(axis='y', which='major', left=True, right=False)
 				
-			for a in axesScatter.xaxis.majorTicks:
-					a.tick1On=True
-					a.tick2On=False
+			axesScatter.tick_params(axis='x', which='major', bottom=True, top=False)
 					
 			for line in axesScatter.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -293,13 +289,9 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 				axesRightHistogram.set_xlim([0, max(pdf)*1.05])
 
 				# *** Prettify histogram plot
-				for a in axesTopHistogram.yaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+				axesTopHistogram.tick_params(axis='y', which='major', left=True, right=False)
 					
-				for a in axesTopHistogram.xaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+				axesTopHistogram.tick_params(axis='x', which='major', bottom=True, top=False)
 						
 				for line in axesTopHistogram.yaxis.get_ticklines(): 
 					line.set_color(axesColour)
@@ -313,13 +305,9 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 						else:
 							spine.set_color(axesColour)
 
-				for a in axesRightHistogram.yaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+				axesRightHistogram.tick_params(axis='y', which='major', left=True, right=False)
 					
-				for a in axesRightHistogram.xaxis.majorTicks:
-						a.tick1On=True
-						a.tick2On=False
+				axesRightHistogram.tick_params(axis='x', which='major', bottom=True, top=False)
 						
 				for line in axesRightHistogram.yaxis.get_ticklines(): 
 					line.set_color(axesColour)
@@ -355,7 +343,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 		
 		configDlg.ui.chkShowR2.setChecked(self.bShowR2)
 				
-		if configDlg.exec_() == QtGui.QDialog.Accepted:
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			self.figWidth = configDlg.ui.spinFigWidth.value()
 			self.figHeight = configDlg.ui.spinFigHeight.value()
 			
@@ -381,7 +369,7 @@ class ScatterPlot(AbstractGroupPlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ScatterPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

@@ -22,19 +22,52 @@
 #=======================================================================
 
 import time
+import functools
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib as mpl
+import matplotlib.style
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 
 import numpy as np
 
+# rcParams that STAMP.py sets globally (fonts, SVG text); they win over the classic style.
+_APP_RC_KEYS = ('font.size', 'axes.titlesize', 'axes.labelsize', 'xtick.labelsize',
+				'ytick.labelsize', 'legend.fontsize', 'svg.fonttype')
+
+def mpl14Style():
+	'''
+	Context with the matplotlib 1.x defaults upstream was drawn with (matplotlib's 'classic'
+	style: tick direction/size/locator, autolimits and margins, bar/hist edges, errorbar caps,
+	scatter edges, legend frame, line and marker edge widths), keeping the rcParams STAMP.py
+	sets globally. Scoped, so it never leaks into other plot families.
+	'''
+	keep = {k: mpl.rcParams[k] for k in _APP_RC_KEYS}
+	keep.update({k: v for k, v in mpl.rcParams.items() if k.startswith(('keymap.', 'animation.'))})
+	return matplotlib.style.context(['classic', keep])
+
+def _withMpl14Style(method):
+	@functools.wraps(method)
+	def wrapper(*args, **kwargs):
+		with mpl14Style():
+			return method(*args, **kwargs)
+	return wrapper
+
 class AbstractGroupPlotPlugin(FigureCanvas):
 	'''
 	Abstract base class specifying interface of a group plot plugin.
+
+	plot(), emptyAxis(), draw() and savePlot() run inside mpl14Style(); a subclass's
+	plot() is wrapped automatically (see __init_subclass__).
 	'''
+	def __init_subclass__(cls, **kwargs):
+		super().__init_subclass__(**kwargs)
+		if 'plot' in cls.__dict__:
+			cls.plot = _withMpl14Style(cls.__dict__['plot'])
+
 	def __init__(self, preferences, parent=None):	
 		self.preferences = preferences
 		
@@ -44,8 +77,8 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		
 		self.setParent(parent)
 		FigureCanvas.setSizePolicy(self,
-														 QtGui.QSizePolicy.Fixed,
-														 QtGui.QSizePolicy.Fixed)
+														 QtWidgets.QSizePolicy.Policy.Fixed,
+														 QtWidgets.QSizePolicy.Policy.Fixed)
 		FigureCanvas.updateGeometry(self)
 		
 		self.cid = None
@@ -67,6 +100,11 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 	def configure(self, profile, statsResults):
 		pass
 	
+	def draw(self):
+		with mpl14Style():
+			FigureCanvas.draw(self)
+
+	@_withMpl14Style
 	def savePlot(self, filename, dpi=300):
 		format = filename[filename.rfind('.')+1:len(filename)]
 		if format in ['png', 'pdf', 'ps', 'eps','svg']:			
@@ -95,15 +133,15 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		
 		bboxes = []
 		for label in xText:
-			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bbox = label.get_window_extent(self.figure.canvas.get_renderer())
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)
 		xLabelBounds = mtransforms.Bbox.union(bboxes)
 		
 		bboxes = []
 		for label in yText:
-			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bbox = label.get_window_extent(self.figure.canvas.get_renderer())
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		yLabelBounds = mtransforms.Bbox.union(bboxes)			
 		
@@ -120,8 +158,8 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		
 		bboxes = []
 		for label in xLabels:
-			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bbox = label.get_window_extent(self.figure.canvas.get_renderer())
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		xLabelBounds = mtransforms.Bbox.union(bboxes)		
 		
@@ -138,8 +176,8 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		
 		bboxes = []
 		for label in yLabels:
-			bbox = label.get_window_extent(self.get_renderer())
-			bboxi = bbox.inverse_transformed(self.fig.transFigure)
+			bbox = label.get_window_extent(self.figure.canvas.get_renderer())
+			bboxi = bbox.transformed(self.fig.transFigure.inverted())
 			bboxes.append(bboxi)		
 		yLabelBounds = mtransforms.Bbox.union(bboxes)		
 		
@@ -147,6 +185,7 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 		
 		return yLabelBounds
 
+	@_withMpl14Style
 	def emptyAxis(self, title = ''):
 		self.fig.clear()	 
 		self.fig.set_size_inches(6,4)	
@@ -182,9 +221,9 @@ class AbstractGroupPlotPlugin(FigureCanvas):
 				
 		return formattedLabels
 	
-class ConfigureDialog(QtGui.QDialog):
+class ConfigureDialog(QtWidgets.QDialog):
 	def __init__(self, configDialogUI, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QDialog.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = configDialogUI()
@@ -193,11 +232,11 @@ class ConfigureDialog(QtGui.QDialog):
 		self.centerWindow()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
 	
-class TestWindow(QtGui.QMainWindow):
+class TestWindow(QtWidgets.QMainWindow):
 	'''
 	Simple Qt window for testing plots.
 	'''
@@ -208,13 +247,13 @@ class TestWindow(QtGui.QMainWindow):
 		PlotClass - a class object (not instance) inherited from AbstractPlotPlugin
 		'''
 		
-		QtGui.QMainWindow.__init__(self)
-		self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		QtWidgets.QMainWindow.__init__(self)
+		self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
 		self.setWindowTitle("Test Window")
 		
-		self.main_widget = QtGui.QWidget(self)
+		self.main_widget = QtWidgets.QWidget(self)
 		
-		layout = QtGui.QVBoxLayout(self.main_widget)
+		layout = QtWidgets.QVBoxLayout(self.main_widget)
 		testPlot = PlotClass(self.main_widget)
 		
 		if statsResults != '':
