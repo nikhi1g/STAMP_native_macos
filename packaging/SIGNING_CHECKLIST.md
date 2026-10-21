@@ -15,3 +15,9 @@
 - [x] 10. Hand-off: dist/STAMP-2.1.3.dmg + SHA-256, INSTALL.md, architecture.md
 
 Status: DONE. dist/STAMP-2.1.3.dmg signed, notarized, stapled. SHA-256 e5a7a16c...188c. Next: clean-environment verification, then publish; rotate the app-specific password.
+
+## .pkg installer (2026-10-21)
+- [x] P1. You: Xcode -> Settings -> Apple Accounts -> NIKHIL GUPTA -> Manage Certificates -> + -> Developer ID Installer
+- [x] P2. Claude: script ready (packaging/make_pkg.sh); build STAMP-2.1.3.pkg (installs STAMP.app to /Applications), sign with Developer ID Installer
+- [x] P3. Claude: notarize + staple pkg; verify (pkgutil --check-signature, spctl -t install, stapler)
+- [~] P4. You: click through the installer (opened) -> then Claude checks /Applications/STAMP.app; ; hand file + SHA-256 to release
