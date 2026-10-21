@@ -78,6 +78,23 @@ STAMP_native_macos/
 └── pyproject.toml, uv.lock
 ```
 
+## Distribution and updates (agreed 2026-10-21)
+- Main download: a zip of the notarized app (`STAMP-<version>-<build>.zip`); `.pkg` and `.dmg` as
+  secondary downloads. No dragging, finding files or passwords for the user.
+- First launch outside an Applications folder: a prompt in front of the STAMP window, "Move STAMP to
+  your Applications folder?" with Move to Applications / Not Now and a "Don't remind me about this
+  again" checkbox. Move: copy to /Applications (or ~/Applications when the account cannot write
+  /Applications), relaunch from there, move the downloaded app and zip (or ejected dmg) to the Trash.
+  Not Now: asked again at every launch from outside Applications unless the checkbox is ticked.
+- Updates: Sparkle 2 inside the app, so users never return to the download page. Checks at launch and
+  every 24 h; popup "Install and Relaunch / Later / Skip This Version" with release notes. Defaults:
+  automatic checks on, automatic download and install off. "Check for Updates..." menu item and an
+  update section in Preferences.
+- Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
+  zip on an immutable R2 key, signed with Developer ID (notarized) and with Sparkle's EdDSA key (kept in
+  the user's keychain).
+- Future, not yet scheduled: update popup and Preferences styled like STAMP's own (Windows-look) UI.
+
 ## Plan
 1. Repository created (done).
 2. Import upstream STAMP at `088aacd` (GPL-3) unmodified as the baseline commit (done,
