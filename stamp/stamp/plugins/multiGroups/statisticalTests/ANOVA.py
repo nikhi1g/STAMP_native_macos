@@ -42,7 +42,11 @@ class ANOVA(AbstractMultiGroupStatsTestPlugin):
 				note = 'degenerate case: at least one group contains less than 2 samples'
 				return 1.0, note
 				
-		F_value, pValue = f_oneway(*data)
+		try:
+			F_value, pValue = f_oneway(*data)
+		except (TypeError, ValueError):
+			# scipy >= 1.11 raises for fewer than two groups; scipy 0.x returned nan, which upstream maps below
+			pValue = float('nan')
 		if math.isnan(pValue):
 			pValue = 1.0 # invalid data for calculating p-value so assume large p-value
 			note = 'degenerate case: failed to calculate p-value'

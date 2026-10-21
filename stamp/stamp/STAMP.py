@@ -72,6 +72,8 @@ import matplotlib as mpl
 mpl.rcParams['svg.fonttype'] = 'none'
 
 from numpy import seterr
+import numpy
+import scipy
 
 class MainWindow(QtWidgets.QMainWindow):
 	def __init__(self, preferences, parent=None):
@@ -1761,12 +1763,45 @@ class MainWindow(QtWidgets.QMainWindow):
 		settings.setValue('Preferences/All other samples colour', self.preferences['All other samples colour'].name())
 		settings.setValue('Preferences/Minimum reported p-value exponent', self.preferences['Minimum reported p-value exponent'])
 
+def getMainDir():
+	# directory containing the stamp package (upstream used DirectoryHelper.getMainDir, built on py2exe/py2app and imp)
+	if getattr(sys, 'frozen', False):
+		return sys._MEIPASS	# PyInstaller
+
+	return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def logFilePath():
+	'''Where the port writes its log (full tracebacks of errors shown in the dialog, startup info).'''
+	if platform.system() == 'Darwin':
+		logDir = os.path.join(os.path.expanduser('~'), 'Library', 'Logs', 'STAMP')
+	else:
+		logDir = os.path.join(os.path.expanduser('~'), '.stamp')
+	try:
+		os.makedirs(logDir, exist_ok=True)
+	except OSError:
+		return None
+	return os.path.join(logDir, 'STAMP.log')
+
+def setupLogging():
+	import logging
+	handlers = [logging.StreamHandler(sys.stderr)]
+	logPath = logFilePath()
+	if logPath:
+		handlers.append(logging.FileHandler(logPath, encoding='utf-8'))
+	logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', handlers=handlers)
+	logging.info('STAMP %s starting; python %s; frozen=%s; executable=%s; main dir=%s',
+		__version__, sys.version.split()[0], bool(getattr(sys, 'frozen', False)), sys.executable, getMainDir())
+	logging.info('Qt %s, PyQt %s, matplotlib %s (cache dir %s), numpy %s, scipy %s; log file %s',
+		QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR, mpl.__version__, mpl.get_cachedir(), numpy.__version__, scipy.__version__, logPath)
+	return logPath
+
 def exceptHook(exc_type, exc_value, exc_traceback):
 	# # Copyright (c) 2002-2007 Pascal Varet <p.varet@gmail.com>
 	# #
 	# # Originally part of Spyrit.
 
 	import traceback
+	import logging
 
 	# # KeyboardInterrupt is a special case.
 	# # We don't raise the error dialog when it occurs.
@@ -1774,6 +1809,9 @@ def exceptHook(exc_type, exc_value, exc_traceback):
 		if QtWidgets.QApplication.instance():
 			QtWidgets.QApplication.instance().quit()
 		return
+
+	# the dialog below only names the line and file; the full traceback goes to stderr and the log file
+	logging.error('Unhandled exception:\n%s', ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
 	filename, line, dummy, dummy = traceback.extract_tb(exc_traceback).pop()
 	filename = os.path.basename(filename)
@@ -1784,13 +1822,6 @@ def exceptHook(exc_type, exc_value, exc_traceback):
 	+ "<b><i>%s</i></b><br/>" % error
 	+ "It occured at <b>line %d</b> of file <b>%s</b>.<br/>" % (line, filename)
 	+ "</center>")
-
-def getMainDir():
-	# directory containing the stamp package (upstream used DirectoryHelper.getMainDir, built on py2exe/py2app and imp)
-	if getattr(sys, 'frozen', False):
-		return sys._MEIPASS	# PyInstaller
-
-	return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
 	# ignore numpy warnings as invalid results are handled within STAMP
@@ -1834,6 +1865,7 @@ def main():
 		os.chdir(workingDir)
 
 	if (platform.system() == 'Windows' and len(sys.argv) == 1) or (platform.system() != 'Windows' and len(sys.argv) <= 2):
+		setupLogging()
 		sys.excepthook = exceptHook
 		app = QtWidgets.QApplication(sys.argv)
 
