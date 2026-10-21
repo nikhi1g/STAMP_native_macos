@@ -68,11 +68,29 @@ STAMP_native_macos/
 1. Repository created (done).
 2. Import upstream STAMP at `088aacd` (GPL-3) unmodified as the baseline commit (done,
    commit 2f96d76; `stamp/` tree hash equals the upstream commit's root tree).
-3. Port: Python 2 -> 3, PyQt4 -> PyQt6, matplotlib QtAgg, biom-format 2.1.x; Fusion style,
-   in-window menu bar.
-4. Generate golden outputs from the reference; parity tests pass.
-5. Package `STAMP.app` -> `STAMP.dmg`, signed and notarized.
+3. Port: Python 2 -> 3, PyQt4 -> PyQt6, matplotlib QtAgg, biom-format 2.1.x; Windows style
+   (Fusion fallback), in-window menu bar (done; see Verification below).
+4. Generate golden outputs from the reference; parity tests pass (done; `tests/golden/`).
+5. Package `STAMP.app` -> `STAMP.dmg` (done, ad-hoc signed); Developer ID signing and
+   notarization pending the certificate.
 6. One-page install note replacing the manual's Porting Kit steps.
+
+## Running and debugging
+- Dev run: `uv run python stamp/STAMP.py` (checkout) or `open dist/STAMP.app` (bundle).
+- Build: `packaging/build_app.sh` (PyInstaller, ~40 s) then `packaging/make_dmg.sh`.
+- Smoke the bundle and see its output in one go: `packaging/smoke_app.sh [seconds]`.
+- Logs: the app writes `~/Library/Logs/STAMP/STAMP.log` (startup info: versions, paths,
+  frozen or not; and the full traceback of every error that upstream's "An error has
+  occured" dialog shows, which itself only names a line). The same text goes to stderr, so
+  launching from a terminal (`dist/STAMP.app/Contents/MacOS/STAMP`) prints it live.
+- Tests: `uv run pytest -q` (all, ~2 min; GUI tests run offscreen). Parity against the
+  Python 2 reference: `uv run pytest tests/test_golden_parity.py`.
+- Regenerate the reference output (needs Docker/colima; only a `$HOME` path can be mounted):
+  `docker run --rm --platform linux/amd64 --user 0 --entrypoint python -v $PWD/tests/golden:/gold
+  -v $PWD/tests/data/soil:/soil:ro stamp-ref:py2-088aacd /gold/generate.py /opt/STAMP /soil
+  /gold/golden_py2.json`.
+- Shortcuts as upstream defines them: Ctrl+O load, Ctrl+S save plot, Ctrl+W send plot to
+  its own window (the manual's "Ctrl + W and Save"), Ctrl+P properties, Ctrl+L legend.
 
 ## Open items
 - Apple Developer Program: confirm paid membership; create a Developer ID Application
