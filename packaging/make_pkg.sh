@@ -12,6 +12,7 @@ LOGDIR=build/signing; mkdir -p "$LOGDIR"
 /usr/bin/security find-identity -v | grep -qF "$INST_ID" || { echo "installer identity not found: $INST_ID" >&2; exit 1; }
 xcrun stapler validate "$APP" >/dev/null || { echo "$APP is not stapled; run packaging/sign_notarize.sh" >&2; exit 1; }
 VERSION=$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)
+BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
 ID=$(defaults read "$PWD/$APP/Contents/Info" CFBundleIdentifier)
 STAGE=$(mktemp -d "${TMPDIR:-/tmp}/stamp-pkg.XXXXXX"); trap 'rm -rf "$STAGE"' EXIT
 mkdir -p "$STAGE/root/Applications"
@@ -20,7 +21,7 @@ ditto "$APP" "$STAGE/root/Applications/STAMP.app"
 pkgbuild --analyze --root "$STAGE/root" "$STAGE/comp.plist" >/dev/null
 plutil -replace 0.BundleIsRelocatable -bool NO "$STAGE/comp.plist"
 pkgbuild --root "$STAGE/root" --component-plist "$STAGE/comp.plist" --identifier "$ID.pkg" \
-  --version "$VERSION" --install-location / "$STAGE/STAMP-component.pkg"
+  --version "$VERSION.$BUILD" --install-location / "$STAGE/STAMP-component.pkg"
 cat > "$STAGE/distribution.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
@@ -34,7 +35,7 @@ cat > "$STAGE/distribution.xml" <<XML
   <pkg-ref id="$ID.pkg" version="$VERSION" onConclusion="none">STAMP-component.pkg</pkg-ref>
 </installer-gui-script>
 XML
-PKG=dist/STAMP-$VERSION.pkg
+PKG=dist/STAMP-$VERSION-$BUILD.pkg
 productbuild --distribution "$STAGE/distribution.xml" --package-path "$STAGE" --sign "$INST_ID" --timestamp "$PKG"
 pkgutil --check-signature "$PKG"
 if [ -z "${SKIP_NOTARIZE:-}" ]; then

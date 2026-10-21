@@ -72,7 +72,7 @@ app = BUNDLE(
         'CFBundleName': 'STAMP',
         'CFBundleDisplayName': 'STAMP',
         'CFBundleShortVersionString': '2.1.3',
-        'CFBundleVersion': '2.1.3',
+        'CFBundleVersion': '2',
         'LSMinimumSystemVersion': '12.0',
         'NSHighResolutionCapable': True,
         # light window chrome: the content uses Qt's Windows style with its light palette, so

@@ -29,6 +29,8 @@ notarize() {   # $1 = file to submit; logs result JSON + Apple's log
 
 packaging/build_app.sh
 VERSION=$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)
+BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
+NAME=STAMP-$VERSION-$BUILD
 
 echo "signing nested code (inside-out)..."
 # every Mach-O file except the main executable, deepest first
@@ -49,8 +51,12 @@ if [ -z "${SKIP_NOTARIZE:-}" ]; then
   spctl -a -t exec -vv "$APP"
 fi
 
+# main download: zip of the stapled app (Safari unzips it; the app offers to move itself to Applications)
+ditto -c -k --keepParent "$APP" "dist/$NAME.zip"
+shasum -a 256 "dist/$NAME.zip" | tee "dist/$NAME.zip.sha256"
+
 packaging/make_dmg.sh
-DMG=dist/STAMP-$VERSION.dmg
+DMG=dist/$NAME.dmg
 mv -f dist/STAMP.dmg "$DMG"
 codesign --force --timestamp --sign "$SIGN_ID" "$DMG"
 if [ -z "${SKIP_NOTARIZE:-}" ]; then

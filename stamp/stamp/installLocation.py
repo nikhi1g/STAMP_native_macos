@@ -181,8 +181,8 @@ def offerMove(settings, parent=None):
 	"""Ask to move STAMP.app into Applications. Returns True when STAMP relaunched from the new
 	location and this process should quit."""
 	from PyQt6 import QtWidgets
-	if sys.platform != 'darwin' or not getattr(sys, 'frozen', False):
-		return False
+	if sys.platform != 'darwin' or not getattr(sys, 'frozen', False) or os.environ.get('STAMP_NO_MOVE_PROMPT'):
+		return False	# not a macOS app bundle, or suppressed (automated smoke tests, managed installs)
 	running = bundlePath(sys.executable)
 	if running is None:
 		return False
