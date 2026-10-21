@@ -1,0 +1,9 @@
+Team Name	Quarter	Sample ID	Site	Plant	Latitude	Longitude	Sample Date	Environmental Setting	Undisturbed vs Disturbed	Native vs. Invasive	Soil Moisture	pH	Nitrogen	Potassium	Phosphorous	Disturbance (normalized)	Plant status (normalized)
+UNC	S26	MIMG26_1	Botanical Gardens	Eucalyptus Tree and California Poppy	34.065921	-118.440847	2026-04-01	Slope/slant	Undisturbed	Both	18.72	6.0	Low	Medium (20-200 lb/acre)	High (100 lb/acre)	Undisturbed	Both
+MWB	S26	MIMG26_10	Botanical Gardens	Woodwardia Fimbriata	34.06573	-118.44097	2026-04-01	Slope	Disturbed	Native	0.2963	7.0	trace	very high	high	Disturbed	Native
+BB	S26	MIMG26_2	Botanical Gardens	Elaeodendron croceum	34.06517	-118.44149	2026-04-01	Hawaiian tropic	disturbed	invasive	0.4314	7.0	trace	high	medium-	Disturbed	Invasive
+EX	S26	MIMG26_3	Botanical Gardens	Yucca gigantea	34.0656798	-118.4402923	2026-04-01	Desert/Slope	Disturbed	Native	0.2645	6.0	low	medium-high	medium-low	Disturbed	Native
+OB	S26	MIMG26_4	Botanical Gardens	Cycadaceae and Zamiaceae	34.06572	-118.4416	2026-04-01	Slope	Disturbed	Invasive	0.24	7.0	trace	medium	low	Disturbed	Invasive
+SS	S26	MIMG26_6	Botanical Gardens	Xanthus mimosa (Fabaceae) tree	34.065596	-118.441796	2026-04-01	Slope/Terrestrial habitat, not submerged	distrubed	Invasive	0.196	6.0	low	high	low	Disturbed	Invasive
+AMRN	S26	MIMG26_7	Botanical Gardens	Rhapis excelsa	34.0656	-118.4411	2026-04-01	flat, near stream	Disturbed	Invasive	0.4417	7.0	none	medium	high	Disturbed	Invasive
+GP	S26	MIMG26_9	Botanical Gardens	Guava tree, Hibiscus	34.064464	-118.441117	2026-04-01	close to man-made walkway, under tree, flat	Undisturbed	Invasive	0.36	6-6.5	low	high	high	Undisturbed	Invasive

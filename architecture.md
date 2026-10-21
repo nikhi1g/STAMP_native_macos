@@ -25,7 +25,7 @@ The user interface must preserve the original STAMP interface as seen on the lab
 | Language | Python 3.12 | |
 | GUI toolkit | PyQt6 (Qt 6.x) | Closest API to STAMP's PyQt4; GPL matches STAMP's GPL-3 |
 | Layout | STAMP's original `.ui` files and icons, unchanged | Same windows, panels, dialogs, menus |
-| Widget style | Qt Fusion | Closest available match to the Windows look; Qt's Windows styles do not run on macOS |
+| Widget style | Qt "Windows" style, Fusion as fallback | Qt 6.11 ships the classic Windows style on macOS (verified: `QStyleFactory.keys()` = macOS, Windows, Fusion). Under Wine/Porting Kit, PyQt4's Vista style falls back to this same classic style, so it is the closest match. See Findings. |
 | Menu bar | Inside the STAMP window (not the macOS top bar) | Matches Windows |
 | Shortcuts | Original (Ctrl+O load data, Ctrl+W save plot) mapped to ⌘O / ⌘W | |
 | Plotting | matplotlib 3.x, QtAgg backend | 300 DPI figure export (manual CI-5 step 8) |
@@ -66,7 +66,8 @@ STAMP_native_macos/
 
 ## Plan
 1. Repository created (done).
-2. Import upstream STAMP at `088aacd` (GPL-3) unmodified as the baseline commit.
+2. Import upstream STAMP at `088aacd` (GPL-3) unmodified as the baseline commit (done,
+   commit 2f96d76; `stamp/` tree hash equals the upstream commit's root tree).
 3. Port: Python 2 -> 3, PyQt4 -> PyQt6, matplotlib QtAgg, biom-format 2.1.x; Fusion style,
    in-window menu bar.
 4. Generate golden outputs from the reference; parity tests pass.
@@ -80,3 +81,17 @@ STAMP_native_macos/
 ## Findings (agent notes, not user specification)
 - This Mac has two "Apple Development: <your Apple ID email> (DC2WXMK9MY)" certificates (testing
   only) and no Developer ID Application certificate. Xcode and `notarytool` are installed.
+- The spec's premise that Qt's Windows styles do not run on macOS was wrong: Qt 6.11 on this
+  Mac offers `Windows` (classic look) in `QStyleFactory`. The port uses it, with Fusion as the
+  fallback. Pending the user's side-by-side check against the Windows build.
+- Six upstream files (`QTable.py`, `KruskalWallis.py`, `GamesHowell.py`, `Scheffe.py`,
+  `TukeyKramer.py`, `WelchUncorrected.py`) use classic-Mac CR line endings; they were
+  normalized to LF so Python 3 can parse them.
+- Reference for golden outputs: the Python 2 image is built from the Dockerfile embedded in
+  `../stamp_metagenomic_profiles/run.sh` (extracted into the scratchpad, tagged
+  `stamp-ref:py2-088aacd`, never run from the reference folder). `tests/golden/generate.py`
+  runs unchanged under both interpreters and produces `tests/golden/*.json`.
+- Class data used for parity tests: `tests/data/soil/` (109BL soil tables + metadata, copied
+  from the reference project's `src/`).
+- `biom-format` 2.1.x: the BIOM import dialog is adapted to the current API (the reference
+  Docker build pinned 2.0.1 instead).
