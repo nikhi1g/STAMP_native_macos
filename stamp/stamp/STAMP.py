@@ -31,6 +31,7 @@ __status__ = 'Development'
 
 import os
 import sys
+import logging
 import platform
 import string
 
@@ -1896,6 +1897,9 @@ def main():
 			mainWindow = MainWindow(preferences)
 
 		mainWindow.show()
+		plugins = [len(getattr(mainWindow, name, {})) for name in ('sampleStatTestDict', 'groupStatTestDict', 'multiGroupStatTestDict')]
+		plugins.append(sum(len(getattr(getattr(mainWindow, name, None), 'plotDict', {})) for name in ('samplePlot', 'groupPlot', 'multiGroupPlot')))
+		logging.info('Main window shown; plugins loaded (%d two-sample tests, %d two-group tests, %d multi-group tests, %d plots)', *plugins)
 		sys.exit(app.exec())
 	else:
 		print('Failed to start STAMP.')

@@ -32,7 +32,9 @@ class QTable():
 		
 		self.qTables = {}
 		for i in range(0, len(tables)):
-			dataPath = os.path.join(os.path.split(os.path.realpath(__file__))[0], '..', '..', '..', 'data', tables[i])
+			# normpath: in the frozen app the package directories exist only inside the archive, so a
+			# path with '..' components cannot be resolved by the OS (ENOENT); collapse them lexically
+			dataPath = os.path.normpath(os.path.join(os.path.split(os.path.realpath(__file__))[0], '..', '..', '..', 'data', tables[i]))
 			
 			fin = open(dataPath, newline=None)
 			data = fin.readlines()
