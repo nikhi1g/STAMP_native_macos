@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 APP=dist/STAMP.app
 VERSION=$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)
 BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
-NAME=STAMP-$VERSION-$BUILD
+NAME=STAMP-$VERSION-$BUILD${STAMP_NAME_SUFFIX:-}
 [ -f "dist/$NAME.zip" ] || { echo "dist/$NAME.zip missing; run packaging/sign_notarize.sh" >&2; exit 1; }
 NOTES=packaging/release_notes/$NAME.md
 [ -f "$NOTES" ] || { echo "write $NOTES first" >&2; exit 1; }
@@ -20,7 +20,7 @@ BASE=${STAMP_FEED_BASE:-https://www.mimg.io/download/stamp}; BASE=${BASE%/}
 FEED=packaging/appcast/${STAMP_CHANNEL:-production}/appcast.xml; mkdir -p "$(dirname "$FEED")"
 [ -f "$FEED" ] && cp "$FEED" "$STAGE/"
 cp "dist/$NAME.zip" "$STAGE/"; cp "$NOTES" "$STAGE/$NAME.md"
-"$SPARKLE/bin/generate_appcast" --download-url-prefix "$BASE/updates/" \
+"$SPARKLE/bin/generate_appcast" --download-url-prefix "$BASE/${NAME#STAMP-}/" \
   --embed-release-notes --maximum-deltas 0 "$STAGE"
 cp "$STAGE/appcast.xml" "$FEED"
 cp "$STAGE/appcast.xml" dist/appcast.xml

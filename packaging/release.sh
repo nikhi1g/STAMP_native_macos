@@ -2,14 +2,16 @@
 # One command for builds. Run the test gate separately first:  uv run pytest -q
 #   packaging/release.sh          release: app + zip (notarized) -> DMG and pkg in parallel -> zip check -> appcast
 #   packaging/release.sh --dev    development: notarized app + zip only (fastest realistic test build)
-# Staging test builds: STAMP_CHANNEL=staging STAMP_FEED_BASE=https://<staging>/stamp STAMP_BUILD=4 packaging/release.sh
+# Staging test builds: STAMP_CHANNEL=staging STAMP_NAME_SUFFIX=s STAMP_BUILD=4 \
+#   STAMP_FEED_BASE=https://mimg-109bl-staging.gptminimal.workers.dev/download/stamp packaging/release.sh
+# URLs: <base>/appcast.xml (only mutable file) and <base>/<version>-<build><suffix>/STAMP-<version>-<build><suffix>.zip
 # Logs: build/signing/{app,dmg,pkg}.log
 set -euo pipefail
 cd "$(dirname "$0")/.."
 L=build/signing; mkdir -p "$L"
 START=$(date +%s)
 NO_DMG=1 packaging/sign_notarize.sh > "$L/app.log" 2>&1 || { tail -20 "$L/app.log"; exit 1; }
-NAME=STAMP-$(defaults read "$PWD/dist/STAMP.app/Contents/Info" CFBundleShortVersionString)-$(defaults read "$PWD/dist/STAMP.app/Contents/Info" CFBundleVersion)
+NAME=STAMP-$(defaults read "$PWD/dist/STAMP.app/Contents/Info" CFBundleShortVersionString)-$(defaults read "$PWD/dist/STAMP.app/Contents/Info" CFBundleVersion)${STAMP_NAME_SUFFIX:-}
 grep -E "notarization of|^[0-9a-f]{64}" "$L/app.log"
 [ -n "${SKIP_NOTARIZE:-}" ] || packaging/verify_zip.sh "dist/$NAME.zip" | tail -1
 if [ "${1:-}" != "--dev" ]; then

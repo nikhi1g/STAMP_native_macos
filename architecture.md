@@ -91,7 +91,7 @@ STAMP_native_macos/
   automatic checks on, automatic download and install off. "Check for Updates..." menu item and an
   update section in Preferences.
 - Feed: `https://www.mimg.io/download/stamp/appcast.xml` (the only mutable file). Each release adds a
-  zip at `https://www.mimg.io/download/stamp/updates/STAMP-<version>-<build>.zip` (immutable), signed with
+  zip at `https://www.mimg.io/download/stamp/<version>-<build>/STAMP-<version>-<build>.zip` (immutable), signed with
   Developer ID (notarized) and Sparkle's EdDSA key (user's keychain). Build numbers (CFBundleVersion)
   only increase; Sparkle compares them. `packaging/make_appcast.sh` adds each release to
   `packaging/appcast/appcast.xml`.

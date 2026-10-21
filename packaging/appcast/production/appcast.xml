@@ -15,7 +15,7 @@
 - On first launch STAMP offers to move itself to your Applications folder.
 - STAMP now checks for updates and offers to install them (Help > Check for Updates...).
 ]]></description>
-            <enclosure url="https://www.mimg.io/download/stamp/updates/STAMP-2.1.3-3.zip" length="81508971" type="application/octet-stream" sparkle:edSignature="ZIYrMeEzhhoqLPcTOkL0i+KYKxOSkozu5CVPFA/vzfSq1kJ8DLJaOXolOrRX/b3ooNNIhXSd7ww5e+4dhrB+Bg=="/>
+            <enclosure url="https://www.mimg.io/download/stamp/2.1.3-3/STAMP-2.1.3-3.zip" length="81508971" type="application/octet-stream" sparkle:edSignature="ZIYrMeEzhhoqLPcTOkL0i+KYKxOSkozu5CVPFA/vzfSq1kJ8DLJaOXolOrRX/b3ooNNIhXSd7ww5e+4dhrB+Bg=="/>
         </item>
     </channel>
 </rss>

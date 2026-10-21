@@ -30,7 +30,7 @@ notarize() {   # $1 = file to submit; logs result JSON + Apple's log
 packaging/build_app.sh
 VERSION=$(defaults read "$PWD/$APP/Contents/Info" CFBundleShortVersionString)
 BUILD=$(defaults read "$PWD/$APP/Contents/Info" CFBundleVersion)
-NAME=STAMP-$VERSION-$BUILD
+NAME=STAMP-$VERSION-$BUILD${STAMP_NAME_SUFFIX:-}
 
 echo "signing nested code (inside-out)..."
 # every Mach-O file except the main executable: independent of each other, so 8 at a time
