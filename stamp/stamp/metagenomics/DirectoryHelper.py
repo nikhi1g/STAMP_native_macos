@@ -19,13 +19,12 @@
 # along with STAMP.	If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-import imp, sys
+import sys
 import os.path
 
 def runningExecutable():
-	return (hasattr(sys, "frozen") or # new py2exe
-					 hasattr(sys, "importers") # old py2exe
-					 or imp.is_frozen("__main__")) # tools/freeze
+	return (getattr(sys, "frozen", False) or # py2exe, PyInstaller
+					 hasattr(sys, "importers")) # old py2exe
 	
 def getMainDir():
 	if runningExecutable():	

@@ -125,7 +125,9 @@ class MultiGroupStatTestResults(object):
 		valueStr = ''
 		if pValue < 0.01:
 			valueStr = '%.2e' % pValue
-			if valueStr < 10**self.preferences['Minimum reported p-value exponent']:
+			# port: Python 2 ordered every str after every number, so upstream's str < float test was
+			# always False and this branch never ran; 'False and' keeps that behaviour without a TypeError.
+			if False and valueStr < 10**self.preferences['Minimum reported p-value exponent']:
 					valueStr = '< 1e' + str(int(self.preferences['Minimum reported p-value exponent']))
 			elif 'e-00' in valueStr:
 				valueStr = valueStr.replace('e-00', 'e-')

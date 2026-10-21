@@ -38,7 +38,6 @@ approach. Journal of the Royal Statistical Society, Series B, 66:187-205.
 from stamp.plugins.common.AbstractMultCompCorrection import AbstractMultCompCorrection
 
 import numpy
-import scipy
 
 class StoreyFDR(AbstractMultCompCorrection):
   
@@ -53,7 +52,7 @@ class StoreyFDR(AbstractMultCompCorrection):
     numPvalues = len(pValues)
 
     # Find minimum pi0_hat value (i.e. proportion of features that are truly null)
-    testPts = scipy.arange(0.0, 0.951, 0.05)
+    testPts = numpy.arange(0.0, 0.951, 0.05)
     min_pi0_hat = 1
     for testPt in testPts:
       numerator = [pValue for pValue in pValues if pValue > testPt]

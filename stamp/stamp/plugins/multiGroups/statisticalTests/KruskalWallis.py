@@ -50,6 +50,10 @@ class KruskalWallis(AbstractMultiGroupStatsTestPlugin):
 				
 		try:
 			H_statistic, pValue = kruskal(*arrayData)
+			if math.isnan(pValue):
+				# port: current scipy returns nan where the scipy STAMP shipped with raised
+				# ValueError ('All numbers are identical in kruskal'); keep the upstream outcome
+				raise ValueError('All numbers are identical in kruskal')
 		except:
 			pValue = 1.0
 			note = 'Invalid input data for Kruskal-Wallis H-test.'
