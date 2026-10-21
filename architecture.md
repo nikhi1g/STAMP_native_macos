@@ -113,3 +113,21 @@ STAMP_native_macos/
   from the reference project's `src/`).
 - `biom-format` 2.1.x: the BIOM import dialog is adapted to the current API (the reference
   Docker build pinned 2.0.1 instead).
+- Upstream behaviour kept unchanged for parity (identical in the Python 2 build; listed so
+  nobody mistakes it for a port bug): White's test crashes in the GUI when a group has fewer
+  than 8 samples; Kruskal-Wallis needs 5 samples per group; post-hoc tests crash on a group
+  with a single sample; Benjamini-Hochberg and Bonferroni corrected p-values are not capped
+  at 1; the effect-size filter's AND/OR labels are swapped in `filterFeatures`; Welch
+  (uncorrected) post-hoc effect sizes are scaled by 1e4; the extended error bar title always
+  says "(corrected)"; two settings keys are written under one name and read under another
+  (box plot width, scatter bins); loading a second profile raised `KeyError ''` upstream and
+  is fixed in the port (local cause: an empty field name after the combo box is cleared).
+- Behaviour that differs from the Python 2 build by necessity: Monte Carlo tests (White's,
+  Bootstrap, Permutation) draw a different random stream under Python 3 even with the same
+  seed, so their p-values and bootstrap CIs agree only within Monte Carlo error; rows with
+  tied p-values may list in a different order; text files are decoded as UTF-8.
+- Matplotlib 1.4 look: each plot family restores the classic style (ticks in, black patch
+  edges, cap size 3, round-number limits, edge-aligned bars) around its own `plot()`; the
+  three base classes do this with slightly different code, which could be unified later.
+- Qt on macOS ignores QMessageBox window titles (Apple guideline), so the About and error
+  boxes show no title bar text, unlike Windows.
