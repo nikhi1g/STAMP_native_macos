@@ -16,11 +16,13 @@ NOTES=packaging/release_notes/$NAME.md
 [ -f "$NOTES" ] || { echo "write $NOTES first" >&2; exit 1; }
 SPARKLE=$(packaging/fetch_sparkle.sh)
 STAGE=build/appcast; /bin/rm -rf "$STAGE"; mkdir -p "$STAGE"
-[ -f packaging/appcast/appcast.xml ] && cp packaging/appcast/appcast.xml "$STAGE/"
+BASE=${STAMP_FEED_BASE:-https://www.mimg.io/download/stamp}; BASE=${BASE%/}
+FEED=packaging/appcast/${STAMP_CHANNEL:-production}/appcast.xml; mkdir -p "$(dirname "$FEED")"
+[ -f "$FEED" ] && cp "$FEED" "$STAGE/"
 cp "dist/$NAME.zip" "$STAGE/"; cp "$NOTES" "$STAGE/$NAME.md"
-"$SPARKLE/bin/generate_appcast" --download-url-prefix "https://www.mimg.io/download/stamp/updates/" \
+"$SPARKLE/bin/generate_appcast" --download-url-prefix "$BASE/updates/" \
   --embed-release-notes --maximum-deltas 0 "$STAGE"
-cp "$STAGE/appcast.xml" packaging/appcast/appcast.xml
+cp "$STAGE/appcast.xml" "$FEED"
 cp "$STAGE/appcast.xml" dist/appcast.xml
 grep -q "sparkle:edSignature" dist/appcast.xml || { echo "appcast has no EdDSA signature" >&2; exit 1; }
 echo "appcast: $PWD/dist/appcast.xml (item for $NAME added)"

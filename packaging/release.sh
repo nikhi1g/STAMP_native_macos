@@ -2,6 +2,7 @@
 # One command for builds. Run the test gate separately first:  uv run pytest -q
 #   packaging/release.sh          release: app + zip (notarized) -> DMG and pkg in parallel -> zip check -> appcast
 #   packaging/release.sh --dev    development: notarized app + zip only (fastest realistic test build)
+# Staging test builds: STAMP_CHANNEL=staging STAMP_FEED_BASE=https://<staging>/stamp STAMP_BUILD=4 packaging/release.sh
 # Logs: build/signing/{app,dmg,pkg}.log
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -19,7 +20,7 @@ if [ "${1:-}" != "--dev" ]; then
   grep -hE "notarization of|^[0-9a-f]{64}" "$L/dmg.log" "$L/pkg.log"
   packaging/make_appcast.sh | tail -1
   # final artifacts, kept apart from later development builds that reuse the dist/ names
-  OUT=dist/release/${NAME#STAMP-}; mkdir -p "$OUT"
+  OUT=dist/release/${STAMP_CHANNEL:-production}/${NAME#STAMP-}; mkdir -p "$OUT"
   cp -p "dist/$NAME".{zip,dmg,pkg} "dist/$NAME".{zip,dmg,pkg}.sha256 dist/appcast.xml "$OUT/"
   echo "release files: $PWD/$OUT"
 fi
