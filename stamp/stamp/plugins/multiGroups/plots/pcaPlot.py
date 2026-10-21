@@ -24,9 +24,9 @@
 import sys
 import math
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore, QtWidgets
 
-from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog
+from stamp.plugins.multiGroups.AbstractMultiGroupPlotPlugin import AbstractMultiGroupPlotPlugin, TestWindow, ConfigureDialog, mpl14Defaults
 from stamp.plugins.multiGroups.plots.configGUI.pcaPlotUI import Ui_PcaPlotDialog
 
 from stamp.plugins.PlotEventHandler import MultiPlotEventHandler
@@ -38,8 +38,6 @@ from matplotlib.ticker import NullFormatter
 from matplotlib import collections
 
 from matplotlib.patches import Rectangle
-
-from matplotlib.mlab import PCA
 
 from numpy.linalg import LinAlgError
 
@@ -57,15 +55,15 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		self.bPlotFeaturesIndividually = False
 		
 		self.settings = preferences['Settings']
-		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0).toDouble()[0]
-		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 6.0).toDouble()[0]
-		self.bFixedPixelsPerUnitDistance = self.settings.value('multiple group: ' + self.name + '/fixed pixels per unit distance', True).toBool()
-		self.markerSize = self.settings.value('multiple group: ' + self.name + '/marker size', 30).toInt()[0]
-		self.bRotateLabels = self.settings.value('multiple group: ' + self.name + '/rotate pc3 labels', True).toBool()
-		self.bShowPC1vsPC3 = self.settings.value('multiple group: ' + self.name + '/showPC1vsPC3', True).toBool()
-		self.bShowPC3vsPC2 = self.settings.value('multiple group: ' + self.name + '/showPC3vsPC2', True).toBool()
-		self.legendPos = self.settings.value('multiple group: ' + self.name + '/legend position', -1).toInt()[0]
-		self.bUniqueShapes = self.settings.value('multiple group: ' + self.name + '/unique shapes', True).toBool()
+		self.figWidth = self.settings.value('multiple group: ' + self.name + '/width', 7.0, type=float)
+		self.figHeight = self.settings.value('multiple group: ' + self.name + '/height', 6.0, type=float)
+		self.bFixedPixelsPerUnitDistance = self.settings.value('multiple group: ' + self.name + '/fixed pixels per unit distance', True, type=bool)
+		self.markerSize = self.settings.value('multiple group: ' + self.name + '/marker size', 30, type=int)
+		self.bRotateLabels = self.settings.value('multiple group: ' + self.name + '/rotate pc3 labels', True, type=bool)
+		self.bShowPC1vsPC3 = self.settings.value('multiple group: ' + self.name + '/showPC1vsPC3', True, type=bool)
+		self.bShowPC3vsPC2 = self.settings.value('multiple group: ' + self.name + '/showPC3vsPC2', True, type=bool)
+		self.legendPos = self.settings.value('multiple group: ' + self.name + '/legend position', -1, type=int)
+		self.bUniqueShapes = self.settings.value('multiple group: ' + self.name + '/unique shapes', True, type=bool)
 		
 	def mirrorProperties(self, plotToCopy):
 		self.name = plotToCopy.name
@@ -86,6 +84,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		
 		self.bUniqueShapes = plotToCopy.bUniqueShapes
 		
+	@mpl14Defaults
 	def plot(self, profile, statsResults):
 		if len(profile.profileDict) <= 0 or profile.getNumberActiveSamples() <= 2:
 			self.emptyAxis('There are 2 or fewer active samples.')
@@ -354,13 +353,9 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 
 		# *** Prettify scatter plot
 		for axes in scatterPlotAxes:
-			for a in axes.yaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+			axes.yaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 					
-			for a in axes.xaxis.majorTicks:
-				a.tick1On=True
-				a.tick2On=False
+			axes.xaxis.set_tick_params(which='major', tick1On=True, tick2On=False)
 				
 			for line in axes.yaxis.get_ticklines(): 
 				line.set_color(axesColour)
@@ -436,7 +431,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 		
 		configDlg.ui.chkUniqueShapes.setChecked(self.bUniqueShapes)
 		
-		if configDlg.exec_() == QtGui.QDialog.Accepted:	 
+		if configDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:	 
 			self.figWidth = configDlg.ui.spinFigWidth.value()
 			self.figHeight = configDlg.ui.spinFigHeight.value()
 			
@@ -478,7 +473,7 @@ class pcaPlot(AbstractMultiGroupPlotPlugin):
 			self.plot(profile, statsResults)
 					
 if __name__ == "__main__": 
-	app = QtGui.QApplication(sys.argv)
+	app = QtWidgets.QApplication(sys.argv)
 	testWindow = TestWindow(ProfileScatterPlot)
 	testWindow.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())
