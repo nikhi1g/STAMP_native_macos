@@ -1,0 +1,47 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>STAMP</title>
+        <item>
+            <title>2.1.7</title>
+            <pubDate>Wed, 21 Oct 2026 14:17:15 -0700</pubDate>
+            <sparkle:version>2.1.7</sparkle:version>
+            <sparkle:shortVersionString>2.1.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# STAMP 2.1.7
+
+- About STAMP links to the source code through mimg.io.
+- Shorter update prompt.
+]]></description>
+            <enclosure url="https://mimg-109bl-staging.gptminimal.workers.dev/download/stamp/2.1.7/STAMP-2.1.7.zip" length="81509955" type="application/octet-stream" sparkle:edSignature="RZFz/xJUUE34djrUumj8zULYQvVFezEmlfFiTNGDYCsVt3N5qsr/0yFJLS2u3D6yQG6i35X3hyNjFWI+hJBzCQ=="/>
+        </item>
+        <item>
+            <title>2.1.6</title>
+            <pubDate>Wed, 21 Oct 2026 14:10:37 -0700</pubDate>
+            <sparkle:version>2.1.6</sparkle:version>
+            <sparkle:shortVersionString>2.1.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# STAMP 2.1.6
+
+- About STAMP in the STAMP menu (top left), with version and credits.
+- Check for Updates... also in the STAMP menu.
+]]></description>
+            <enclosure url="https://mimg-109bl-staging.gptminimal.workers.dev/download/stamp/2.1.6/STAMP-2.1.6.zip" length="81511254" type="application/octet-stream" sparkle:edSignature="gJGtR1H6a0gjXx/qOMfcWMPmX1ht+YP9VCkkzapqZN+uRvp//ZUc0WqWpxIENsGISiiP75ovZFA0kHkSfDIABA=="/>
+        </item>
+        <item>
+            <title>2.1.5</title>
+            <pubDate>Wed, 21 Oct 2026 13:46:34 -0700</pubDate>
+            <sparkle:version>2.1.5</sparkle:version>
+            <sparkle:shortVersionString>2.1.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# STAMP 2.1.5
+
+- Update test release (staging only).
+]]></description>
+            <enclosure url="https://mimg-109bl-staging.gptminimal.workers.dev/download/stamp/2.1.5/STAMP-2.1.5.zip" length="81509828" type="application/octet-stream" sparkle:edSignature="buq8FXod5qxNe/vUXzwA1wJFqk0hBR9ZUz1Yh766to6S7/OFLLBmG43uufUnxpSly3B7WEXF82xZpnwsRfmhAg=="/>
+        </item>
+    </channel>
+</rss>
