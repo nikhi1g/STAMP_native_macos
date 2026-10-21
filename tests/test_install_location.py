@@ -73,3 +73,19 @@ def test_leftover_zips_only_stamp_downloads(tmp_path):
 	(tmp_path / 'STAMP-2.0.zip').write_text('not a zip')                 # unreadable
 	found = [os.path.basename(p) for p in il.leftoverZips(str(tmp_path))]
 	assert found == ['STAMP-2.1.3 (1).zip', 'STAMP-2.1.3.zip']
+
+
+def test_existing_target_never_touches_a_different_app(tmp_path):
+	def bundle(folder, ident, version):
+		c = tmp_path / folder / 'STAMP.app' / 'Contents'
+		c.mkdir(parents=True)
+		with open(c / 'Info.plist', 'wb') as f:
+			plistlib.dump({'CFBundleIdentifier': ident, 'CFBundleShortVersionString': version}, f)
+		return str(c.parent)
+	source = bundle('downloads', 'com.nikhilgupta.stamp', '2.1.3')
+	assert il.existingTargetAction(str(tmp_path / 'empty' / 'STAMP.app'), source) == 'none'
+	assert il.existingTargetAction(bundle('older', 'com.nikhilgupta.stamp', '2.1.2'), source) == 'replace'
+	assert il.existingTargetAction(bundle('same', 'com.nikhilgupta.stamp', '2.1.3'), source) == 'replace'
+	assert il.existingTargetAction(bundle('newer', 'com.nikhilgupta.stamp', '2.2.0'), source) == 'open-existing'
+	# e.g. the Porting Kit (Wine) wrapper, also named STAMP.app, at version 1.0
+	assert il.existingTargetAction(bundle('wine', 'com.STAMP369632276.wineskin', '1.0'), source) == 'foreign'

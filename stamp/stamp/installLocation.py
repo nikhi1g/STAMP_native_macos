@@ -90,12 +90,28 @@ def destinationDir(home, canWrite=os.access):
 def shouldOffer(path, home, doNotOffer):
 	return path is not None and not doNotOffer and not isInApplications(path, home)
 
-def bundleVersion(bundle):
+def bundleInfo(bundle):
 	try:
 		with open(os.path.join(bundle, 'Contents', 'Info.plist'), 'rb') as f:
-			return plistlib.load(f).get('CFBundleShortVersionString', '0')
+			return plistlib.load(f)
 	except (OSError, plistlib.InvalidFileException):
-		return '0'
+		return {}
+
+def bundleVersion(bundle):
+	return bundleInfo(bundle).get('CFBundleShortVersionString', '0')
+
+def existingTargetAction(target, source):
+	"""What to do about a STAMP.app already at the destination:
+	'none' (nothing there), 'replace' (this app, same or older version), 'open-existing' (this app,
+	newer version) or 'foreign' (a different app that happens to be named STAMP.app; never touched)."""
+	if not os.path.exists(target):
+		return 'none'
+	ourId = bundleInfo(source).get('CFBundleIdentifier')
+	if not ourId or bundleInfo(target).get('CFBundleIdentifier') != ourId:
+		return 'foreign'
+	if versionKey(bundleVersion(target)) > versionKey(bundleVersion(source)):
+		return 'open-existing'
+	return 'replace'
 
 def versionKey(version):
 	return tuple(int(part) if part.isdigit() else 0 for part in re.split(r'[.\-]', str(version)))
@@ -214,19 +230,19 @@ def offerMove(settings, parent=None):
 	target = os.path.join(targetDir, APP_NAME)
 	try:
 		os.makedirs(targetDir, exist_ok=True)
-		if os.path.exists(target):
-			if versionKey(bundleVersion(target)) > versionKey(bundleVersion(source)):
-				logging.info('newer STAMP already in %s; opening it', targetDir)
-				settings.setValue(SETTINGS_KEY, True)
-				relaunch(target, [str(os.getpid())])
-				return True
-			if not moveToTrash(target):
-				raise OSError('could not move the existing %s to the Trash' % target)
+		action = existingTargetAction(target, source)
+		if action == 'foreign':
+			raise OSError('another app named STAMP.app is already in %s (left untouched); move STAMP manually if you want both' % targetDir)
+		if action == 'open-existing':
+			logging.info('newer STAMP already in %s; opening it', targetDir)
+			settings.setValue(SETTINGS_KEY, True)
+			relaunch(target, [str(os.getpid())])
+			return True
+		if action == 'replace' and not moveToTrash(target):
+			raise OSError('could not move the existing %s to the Trash' % target)
 		copyBundle(source, target)
 	except Exception as e:
 		logging.exception('move to Applications failed')
-		if os.path.exists(target) and not os.path.exists(os.path.join(target, 'Contents', 'MacOS')):
-			moveToTrash(target)
 		QtWidgets.QMessageBox.warning(parent, 'STAMP', 'STAMP could not be moved to %s:\n%s\n\nIt will keep running from its current location.' % (targetDir, e))
 		return False
 
