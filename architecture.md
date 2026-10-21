@@ -58,6 +58,14 @@ The user interface must preserve the original STAMP interface as seen on the lab
   formula. Cause of the 8th-9th digit noise: scipy 0.19 (reference) and 1.18 differ in the
   Student-t quantile `t.isf` that forms t-test and Welch CI endpoints, and upstream's
   hypergeometric right tail `(1 - cdf) + pdf` is floating-point noise below ~1e-11 in both.
+- Accuracy criterion (independent of the reference): `tests/accuracy/` recomputes every exposed
+  test, CI method, effect size, post-hoc test and correction with exact rationals or mpmath at 50
+  digits (`oracle.py`, self-checked against closed forms). Pass: abs or rel diff <= 1e-12, except
+  where the comment next to the assertion justifies a looser bound with its measured error
+  (double-precision log-gamma in Fisher/hypergeometric, cancellation in G-tests, upstream's
+  grid search in Newcombe-Wilson, the tabulated and interpolated studentized range in
+  Tukey-Kramer/Games-Howell, Monte Carlo tests within binomial bounds). 13 upstream defects are
+  pinned as strict xfails in `test_acc_defects.py` (see Findings).
 - UI check: side-by-side screenshots against the Windows build for the main window and the
   dialogs used in CI-5.
 
@@ -138,3 +146,25 @@ STAMP_native_macos/
   three base classes do this with slightly different code, which could be unified later.
 - Qt on macOS ignores QMessageBox window titles (Apple guideline), so the About and error
   boxes show no title bar text, unlike Windows.
+- Upstream statistical defects found by the mpmath accuracy suite (all present in the Windows
+  build; kept for parity, each a strict xfail in `tests/accuracy/test_acc_defects.py`; fixing any
+  of them changes results relative to the Windows build and is the user's call): Fisher's exact
+  two-sided drops exactly tied tables (78 of 20214 small tables; e.g. (1,2,2,8) gives 0.533 for an
+  exact 1.0); Fisher's one-sided mis-tails non-integer counts; Newcombe-Wilson misses a root in the
+  last grid step (upper bound above 100%); the two-sample difference-between-proportions test and
+  White's test crash on a zero parent count; the group ratio-of-proportions filter crashes on an
+  all-zero feature; Bootstrap and White's permutation classify ties by float rounding; the t-test's
+  zero-variance handler is unreachable; eta-squared cancels catastrophically on large offsets (1%
+  error); the studentized-range table row for df = 2 is wrong; QTable crashes at 30 or more groups;
+  Sidak's significant-feature count never resets.
+- Verification of the final revision (2026-10-20): `uv run pytest -q` → 624 passed, 13 xfailed
+  (parity 2558 scenarios, accuracy, core oracles, every plot in every mode, all dialogs, main
+  window, end-to-end with real plugins, Skirball demo); `packaging/smoke_app.sh` on
+  `dist/STAMP.app` → main window shown in 2 s with 15 tests and 18 plots loaded, no exception;
+  `tests/walkthrough_ci5.py` → load Skirball phylum profile + metadata, two samples, two groups
+  by Burn status with the p-value filter (only Bacteroidetes remains, p = 2.2e-4, enriched in
+  unburned soil), 300 DPI export (2100x255 px), multiple groups + post-hoc; screenshots in
+  `build/walkthrough_final/`. Side-by-side pixel comparison with the Windows build is not done
+  (no Windows build available here); the extended error bar clips its right-hand
+  "p-value (corrected)" label for 7-character p-values, which follows upstream's fixed 0.75 in
+  label margin.
