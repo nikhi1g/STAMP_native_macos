@@ -36,7 +36,7 @@ def bootstrapDiffOfMeanProp(group1, group2, coverage, replicates = 1000):
 	distribution = []
 	for _ in range(0, replicates):
 		# Draw samples from groups at random, with replacement
-		# random_integers(lo, hi) was randint(lo, hi + 1): same inclusive bound and random stream
+		# scipy.random inclusive draw (0, n-1) == numpy randint(0, n): same values and random stream
 		choices1 = numpy.random.randint(0, sampleSize1, sampleSize1)
 		choices2 = numpy.random.randint(0, sampleSize2, sampleSize2)
 		samplesGroup1 = g1[choices1]

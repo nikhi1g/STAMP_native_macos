@@ -87,7 +87,10 @@ class Ttest(AbstractGroupStatsTestPlugin):
 			lowerCI = dp - tCritical*denom
 			upperCI = dp + tCritical*denom
 
-		except Exception as note:
+		except Exception as exc:
+			# port: Python 3 unbinds the except target after the block, so copy the message out
+			# (Python 2 returned the exception object, whose str() is this message)
+			note = str(exc)
 			pValue = 0.5
 			lowerCI = 0.0
 			upperCI = 0.0
