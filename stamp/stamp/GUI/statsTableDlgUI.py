@@ -17,7 +17,7 @@ class Ui_StatsTableDlg(object):
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/table.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         StatsTableDlg.setWindowIcon(icon)
         StatsTableDlg.setFloating(True)
-        StatsTableDlg.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
+        StatsTableDlg.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetClosable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)

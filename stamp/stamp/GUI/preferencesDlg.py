@@ -21,14 +21,14 @@
 # along with STAMP.	If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .preferencesUI import Ui_preferencesDlg
 
 import math
 
-class PreferencesDlg(QtGui.QDialog):
+class PreferencesDlg(QtWidgets.QDialog):
 	def __init__(self, parent=None, info=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_preferencesDlg()
@@ -39,15 +39,15 @@ class PreferencesDlg(QtGui.QDialog):
 		self.tuncFeatureNameChanged()
 		
 		# connect signals to slots
-		self.connect(self.ui.chkTruncateFeatureNames, QtCore.SIGNAL('toggled(bool)'), self.tuncFeatureNameChanged)
-		self.connect(self.ui.btnOK, QtCore.SIGNAL("clicked()"), self.accept)
-		self.connect(self.ui.btnAxesColour, QtCore.SIGNAL("clicked()"), self.setAxesColour)
-		self.connect(self.ui.btnAllOtherSamplesColour, QtCore.SIGNAL("clicked()"), self.setAllOtherSamplesColour)
+		self.ui.chkTruncateFeatureNames.toggled.connect(self.tuncFeatureNameChanged)
+		self.ui.btnOK.clicked.connect(self.accept)
+		self.ui.btnAxesColour.clicked.connect(self.setAxesColour)
+		self.ui.btnAllOtherSamplesColour.clicked.connect(self.setAllOtherSamplesColour)
 		
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
 				
 	def tuncFeatureNameChanged(self):
 		self.ui.spinFeatureNameLength.setEnabled(self.ui.chkTruncateFeatureNames.isChecked())
@@ -61,7 +61,7 @@ class PreferencesDlg(QtGui.QDialog):
 		self.ui.btnAxesColour.setStyleSheet('* { background-color: rgb(' + colourStr + ') }')
 
 	def setAxesColour(self):
-		colour = QtGui.QColorDialog.getColor(self.axesColour, self, 'Axis colour')
+		colour = QtWidgets.QColorDialog.getColor(self.axesColour, self, 'Axis colour')
 
 		if colour.isValid():
 			self.axesColour = colour
@@ -77,7 +77,7 @@ class PreferencesDlg(QtGui.QDialog):
 		self.ui.btnAllOtherSamplesColour.setStyleSheet('* { background-color: rgb(' + colourStr + ') }')
 
 	def setAllOtherSamplesColour(self):
-		colour = QtGui.QColorDialog.getColor(self.allOtherSamplesColour, self, 'All other samples colour')
+		colour = QtWidgets.QColorDialog.getColor(self.allOtherSamplesColour, self, 'All other samples colour')
 
 		if colour.isValid():
 			self.allOtherSamplesColour = colour
@@ -85,7 +85,7 @@ class PreferencesDlg(QtGui.QDialog):
 			self.ui.btnAllOtherSamplesColour.setStyleSheet('* { background-color: rgb(' + colourStr + ') }')
 		
 	def setMinimumReportedPValue(self, exponent):
-		self.ui.spinMinPvalue.setValue(-exponent)
+		self.ui.spinMinPvalue.setValue(int(-exponent))	# the preference is read back as a float
 		
 	def getMinimumReportedPValue(self):
 		exponent = self.ui.spinMinPvalue.value()

@@ -21,12 +21,12 @@
 # along with STAMP.  If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .selectFeaturesUI import Ui_SelectFeatureDlg
 
-class SelectFeaturesDlg(QtGui.QDialog):
+class SelectFeaturesDlg(QtWidgets.QDialog):
   def __init__(self, statsTestResults, parent=None):
-    QtGui.QWidget.__init__(self, parent)
+    QtWidgets.QWidget.__init__(self, parent)
     
     # initialize GUI
     self.ui = Ui_SelectFeatureDlg()
@@ -38,9 +38,9 @@ class SelectFeaturesDlg(QtGui.QDialog):
     self.init(statsTestResults)
     
     # setup signals
-    self.connect(self.ui.btnFilterFeature, QtCore.SIGNAL('clicked()'), self.filterFeature)
-    self.connect(self.ui.btnAddFeature, QtCore.SIGNAL('clicked()'), self.addFeature)
-    self.connect(self.ui.cboHierarchicalLevel, QtCore.SIGNAL('activated(QString)'), self.hierarchyChanged)
+    self.ui.btnFilterFeature.clicked.connect(self.filterFeature)
+    self.ui.btnAddFeature.clicked.connect(self.addFeature)
+    self.ui.cboHierarchicalLevel.activated.connect(self.hierarchyChanged)
 
     self.centerWindow()
       
@@ -139,6 +139,6 @@ class SelectFeaturesDlg(QtGui.QDialog):
     self.hierarchyChanged()
 
   def centerWindow(self):
-    screen = QtGui.QDesktopWidget().screenGeometry()
+    screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
     size =  self.geometry()
-    self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+    self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)

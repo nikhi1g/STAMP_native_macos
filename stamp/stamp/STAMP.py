@@ -35,49 +35,47 @@ import platform
 import string
 
 import stamp.Dependencies
-from .stamp.GUI.plotDlg import PlotDlg  # forward reference so py2app recognizes this file is required
+from stamp.GUI.plotDlg import PlotDlg  # forward reference so py2app recognizes this file is required
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from .mainUI import Ui_MainWindow
-from .stamp.GUI.selectFeaturesDlg import SelectFeaturesDlg
-from .stamp.GUI.createProfileMgRastDlg import CreateProfileMgRastDlg
-from .stamp.GUI.createProfileRITADlg import CreateProfileRITADlg
-from .stamp.GUI.createProfileCoMetDlg import CreateProfileCoMetDlg
-from .stamp.GUI.createProfileMothurDlg import CreateProfileMothurDlg
-from .stamp.GUI.createProfileBiomDlg import CreateProfileBiomDlg
-from .stamp.GUI.loadDataDlg import LoadDataDlg
-from .stamp.GUI.assignCOGsDlg import AssignCOGsDlg
-from .stamp.GUI.preferencesDlg import PreferencesDlg
-from .stamp.GUI.multCompCorrectionInfoDlg import MultCompCorrectionInfoDlg
-from .stamp.GUI.groupLegendDlg import GroupLegendDlg
-from .stamp.GUI.statsTableDlg import StatsTableDlg
-from .stamp.GUI.metadataTableDlg import MetadataTableDlg
+from stamp.GUI.selectFeaturesDlg import SelectFeaturesDlg
+from stamp.GUI.createProfileMgRastDlg import CreateProfileMgRastDlg
+from stamp.GUI.createProfileRITADlg import CreateProfileRITADlg
+from stamp.GUI.createProfileCoMetDlg import CreateProfileCoMetDlg
+from stamp.GUI.createProfileMothurDlg import CreateProfileMothurDlg
+from stamp.GUI.createProfileBiomDlg import CreateProfileBiomDlg
+from stamp.GUI.loadDataDlg import LoadDataDlg
+from stamp.GUI.assignCOGsDlg import AssignCOGsDlg
+from stamp.GUI.preferencesDlg import PreferencesDlg
+from stamp.GUI.multCompCorrectionInfoDlg import MultCompCorrectionInfoDlg
+from stamp.GUI.groupLegendDlg import GroupLegendDlg
+from stamp.GUI.statsTableDlg import StatsTableDlg
+from stamp.GUI.metadataTableDlg import MetadataTableDlg
 
-from .stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
-from .stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
-from .stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
-from .stamp.metagenomics.fileIO.StampIO import StampIO
-from .stamp.metagenomics.fileIO.MetadataIO import MetadataIO
-from .stamp.metagenomics.GenericTable import GenericTable
-from .stamp.metagenomics.ProfileTree import ProfileTree
-from .stamp.metagenomics.SampleProfile import SampleProfile
-from .stamp.metagenomics.GroupProfile import GroupProfile
-from .stamp.metagenomics.MultiGroupProfile import MultiGroupProfile
+from stamp.metagenomics.stats.SampleStatsTests import SampleStatsTests
+from stamp.metagenomics.stats.GroupStatsTests import GroupStatsTests
+from stamp.metagenomics.stats.MultiGroupStatsTests import MultiGroupStatsTests
+from stamp.metagenomics.fileIO.StampIO import StampIO
+from stamp.metagenomics.fileIO.MetadataIO import MetadataIO
+from stamp.metagenomics.GenericTable import GenericTable
+from stamp.metagenomics.ProfileTree import ProfileTree
+from stamp.metagenomics.SampleProfile import SampleProfile
+from stamp.metagenomics.GroupProfile import GroupProfile
+from stamp.metagenomics.MultiGroupProfile import MultiGroupProfile
 
-from .stamp.metagenomics.DirectoryHelper import getMainDir
-
-from .stamp.plugins.PlotsManager import PlotsManager
-from .stamp.plugins.PluginManager import PluginManager
+from stamp.plugins.PlotsManager import PlotsManager
+from stamp.plugins.PluginManager import PluginManager
 
 import matplotlib as mpl
 mpl.rcParams['svg.fonttype'] = 'none'
 
 from numpy import seterr
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 	def __init__(self, preferences, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 
 		# setup default plot settings
 		mpl.rcParams['font.size'] = 8
@@ -94,22 +92,25 @@ class MainWindow(QtGui.QMainWindow):
 
 		# icons
 		self.refreshIcon = QtGui.QIcon()
-		self.refreshIcon.addPixmap(QtGui.QPixmap(":/icons/icons/refresh.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+		self.refreshIcon.addPixmap(QtGui.QPixmap(":/icons/icons/refresh.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
 
 		# initialize GUI
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
 
+		# keep the menu bar inside the main window (as on Windows) instead of the macOS global menu bar
+		self.menuBar().setNativeMenuBar(False)
+
 		# setup status bar
-		self.lblStatusBar = QtGui.QLabel()
+		self.lblStatusBar = QtWidgets.QLabel()
 		self.ui.statusBar.addPermanentWidget(self.lblStatusBar)
 
-		self.btnAutoRecalculation = QtGui.QPushButton('Recalculate statistics and plots')
+		self.btnAutoRecalculation = QtWidgets.QPushButton('Recalculate statistics and plots')
 		self.btnAutoRecalculation.setCheckable(True)
 		self.btnAutoRecalculation.setChecked(True)
 		self.btnAutoRecalculation.setFixedHeight(20)
 		self.ui.statusBar.addPermanentWidget(self.btnAutoRecalculation)
-		self.connect(self.btnAutoRecalculation, QtCore.SIGNAL('toggled(bool)'), self.autoRecalculateChanged)
+		self.btnAutoRecalculation.toggled.connect(self.autoRecalculateChanged)
 		self.bAutoRecalculate = True
 
 		# initialize class variables
@@ -129,7 +130,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.groupLegendDlg = GroupLegendDlg(self.preferences, self)
 		self.groupLegendDlg.setObjectName("groupLegendDlg");
 		self.groupLegendDlg.setVisible(True)
-		self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.groupLegendDlg)
+		self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.groupLegendDlg)
 		self.groupLegendDlg.setFloating(False)
 
 		self.groupLegendDlg.toggleViewAction().setShortcut("Ctrl+L")
@@ -137,16 +138,16 @@ class MainWindow(QtGui.QMainWindow):
 		self.groupLegendDlg.toggleViewAction().setStatusTip("Show\hide group legend window")
 		self.ui.menuView.addAction(self.groupLegendDlg.toggleViewAction())
 
-		self.connect(self.groupLegendDlg, QtCore.SIGNAL('legendItemChanged()'), self.legendItemChanged)
-		self.connect(self.groupLegendDlg, QtCore.SIGNAL('legendFieldChanged()'), self.legendFieldChanged)
-		self.connect(self.groupLegendDlg, QtCore.SIGNAL('legendActiveGroupsChanged()'), self.legendActiveGroupsChanged)
+		self.groupLegendDlg.legendItemChanged.connect(self.legendItemChanged)
+		self.groupLegendDlg.legendFieldChanged.connect(self.legendFieldChanged)
+		self.groupLegendDlg.legendActiveGroupsChanged.connect(self.legendActiveGroupsChanged)
 
 		# setup metadata window
 		self.ui.menuView.addSeparator()
 		self.metadataDlg = MetadataTableDlg(self)
 		self.metadataDlg.setObjectName("metadataDlg");
 		self.metadataDlg.setVisible(True)
-		self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.metadataDlg)
+		self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.metadataDlg)
 		self.metadataDlg.setFloating(False)
 
 		self.metadataDlg.toggleViewAction().setShortcut("Ctrl+M")
@@ -154,27 +155,27 @@ class MainWindow(QtGui.QMainWindow):
 		self.metadataDlg.toggleViewAction().setStatusTip("Show\hide metadata table")
 		self.ui.menuView.addAction(self.metadataDlg.toggleViewAction())
 
-		self.connect(self.metadataDlg, QtCore.SIGNAL('activeSamplesChanged()'), self.activeSamplesChanged)
+		self.metadataDlg.activeSamplesChanged.connect(self.activeSamplesChanged)
 
 		# connect menu items signals to slots
-		self.connect(self.ui.mnuFileOpenProfile, QtCore.SIGNAL('triggered()'), self.loadProfile)
-		self.connect(self.ui.mnuFileMgRast, QtCore.SIGNAL('triggered()'), self.createProfileMgRast)
-		self.connect(self.ui.mnuFileRITA, QtCore.SIGNAL('triggered()'), self.createProfileRita)
-		self.connect(self.ui.mnuFileCoMet, QtCore.SIGNAL('triggered()'), self.createProfileComet)
-		self.connect(self.ui.mnuFileMothur, QtCore.SIGNAL('triggered()'), self.createProfileMothur)
-		self.connect(self.ui.mnuFileBIOM, QtCore.SIGNAL('triggered()'), self.createProfileBIOM)
-		self.connect(self.ui.mnuFileAppendCategoryCOG, QtCore.SIGNAL('triggered()'), self.appendCategoriesCOG)
-		self.connect(self.ui.mnuFileSavePlot, QtCore.SIGNAL('triggered()'), self.saveImageDlg)
-		self.connect(self.ui.mnuFileExit, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
+		self.ui.mnuFileOpenProfile.triggered.connect(self.loadProfile)
+		self.ui.mnuFileMgRast.triggered.connect(self.createProfileMgRast)
+		self.ui.mnuFileRITA.triggered.connect(self.createProfileRita)
+		self.ui.mnuFileCoMet.triggered.connect(self.createProfileComet)
+		self.ui.mnuFileMothur.triggered.connect(self.createProfileMothur)
+		self.ui.mnuFileBIOM.triggered.connect(self.createProfileBIOM)
+		self.ui.mnuFileAppendCategoryCOG.triggered.connect(self.appendCategoriesCOG)
+		self.ui.mnuFileSavePlot.triggered.connect(self.saveImageDlg)
+		self.ui.mnuFileExit.triggered.connect(self.close)
 
-		self.connect(self.ui.mnuViewSendPlotToWindow, QtCore.SIGNAL('triggered()'), self.sendPlotToWindow)
-		self.connect(self.ui.mnuSettingsPreferences, QtCore.SIGNAL('triggered()'), self.prefrencesDlg)
-		self.connect(self.ui.mnuHelpAbout, QtCore.SIGNAL('triggered()'), self.openAboutDlg)
+		self.ui.mnuViewSendPlotToWindow.triggered.connect(self.sendPlotToWindow)
+		self.ui.mnuSettingsPreferences.triggered.connect(self.prefrencesDlg)
+		self.ui.mnuHelpAbout.triggered.connect(self.openAboutDlg)
 
 		# connect profile level combo box signals to slots
-		self.connect(self.ui.cboProfileLevel, QtCore.SIGNAL('activated(QString)'), self.profileLevelChanged)
-		self.connect(self.ui.cboParentalLevel, QtCore.SIGNAL('activated(QString)'), self.parentLevelChanged)
-		self.connect(self.ui.cboUnclassified, QtCore.SIGNAL('activated(QString)'), self.unclassifiedTreatmentChanged)
+		self.ui.cboProfileLevel.activated.connect(self.profileLevelChanged)
+		self.ui.cboParentalLevel.activated.connect(self.parentLevelChanged)
+		self.ui.cboUnclassified.activated.connect(self.unclassifiedTreatmentChanged)
 
 		self.setupSampleWidgets()
 		self.setupGroupWidgets()
@@ -188,12 +189,12 @@ class MainWindow(QtGui.QMainWindow):
 		pluginManager.populateComboBox(self.multCompDict, self.ui.cboMultiGroupMultCompMethod, 'No correction')
 
 		# connect tab widget signals to slots
-		self.connect(self.ui.tabWidgetProperties, QtCore.SIGNAL('currentChanged(int)'), self.propertiesTabChanged)
+		self.ui.tabWidgetProperties.currentChanged.connect(self.propertiesTabChanged)
 
 		# restore previous window states (size and location of main window and all dock widgets)
 		windowSettings = QtCore.QSettings("BeikoLab", "STAMP");
-		self.restoreState(windowSettings.value("MainWindow/State").toByteArray())
-		bRestoredState = self.restoreGeometry(windowSettings.value("MainWindow/Geometry").toByteArray())
+		self.restoreState(windowSettings.value("MainWindow/State", QtCore.QByteArray(), type=QtCore.QByteArray))
+		bRestoredState = self.restoreGeometry(windowSettings.value("MainWindow/Geometry", QtCore.QByteArray(), type=QtCore.QByteArray))
 
 		if not bRestoredState:
 			self.resize(800, 600)
@@ -215,7 +216,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.sampleTable = StatsTableDlg(self.preferences, self)
 		self.sampleTable.setWindowTitle('Two sample statistics table')
 		self.sampleTable.setVisible(False)
-		self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.sampleTable)
+		self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.sampleTable)
 		self.sampleTable.setFloating(True)
 
 		self.sampleTable.toggleViewAction().setShortcut("Ctrl+T")
@@ -241,59 +242,59 @@ class MainWindow(QtGui.QMainWindow):
 		pluginManager.populateComboBox(self.sampleEffectSizeDict, self.ui.cboSampleEffectSizeMeasure2, 'Ratio of proportions')
 
 		# widget controls in sidebar
-		self.connect(self.ui.btnSampleProfileTab, QtCore.SIGNAL('clicked()'), self.sampleProfileTabClicked)
-		self.connect(self.ui.btnSampleProfileArrow, QtCore.SIGNAL('clicked()'), self.sampleProfileTabClicked)
-		self.connect(self.ui.btnSampleStatisticsTab, QtCore.SIGNAL('clicked()'), self.samplePropTabClicked)
-		self.connect(self.ui.btnSampleStatisticsArrow, QtCore.SIGNAL('clicked()'), self.samplePropTabClicked)
-		self.connect(self.ui.btnSampleFilteringTab, QtCore.SIGNAL('clicked()'), self.sampleFilteringTabClicked)
-		self.connect(self.ui.btnSampleFilteringArrow, QtCore.SIGNAL('clicked()'), self.sampleFilteringTabClicked)
+		self.ui.btnSampleProfileTab.clicked.connect(self.sampleProfileTabClicked)
+		self.ui.btnSampleProfileArrow.clicked.connect(self.sampleProfileTabClicked)
+		self.ui.btnSampleStatisticsTab.clicked.connect(self.samplePropTabClicked)
+		self.ui.btnSampleStatisticsArrow.clicked.connect(self.samplePropTabClicked)
+		self.ui.btnSampleFilteringTab.clicked.connect(self.sampleFilteringTabClicked)
+		self.ui.btnSampleFilteringArrow.clicked.connect(self.sampleFilteringTabClicked)
 
 		# connect profile widget signals to slots
-		self.connect(self.ui.cboSample1, QtCore.SIGNAL('activated(QString)'), self.sampleHierarchicalLevelsChanged)
-		self.connect(self.ui.cboSample2, QtCore.SIGNAL('activated(QString)'), self.sampleHierarchicalLevelsChanged)
-		self.connect(self.ui.btnSample1Colour, QtCore.SIGNAL('clicked()'), self.sample1ColourDlg)
-		self.connect(self.ui.btnSample2Colour, QtCore.SIGNAL('clicked()'), self.sample2ColourDlg)
+		self.ui.cboSample1.activated.connect(self.sampleHierarchicalLevelsChanged)
+		self.ui.cboSample2.activated.connect(self.sampleHierarchicalLevelsChanged)
+		self.ui.btnSample1Colour.clicked.connect(self.sample1ColourDlg)
+		self.ui.btnSample2Colour.clicked.connect(self.sample2ColourDlg)
 
 		# connect statistical test widget signals to slots
-		self.connect(self.ui.cboSampleStatTests, QtCore.SIGNAL('activated(QString)'), self.sampleRunTest)
-		self.connect(self.ui.cboSampleSignTestType, QtCore.SIGNAL('activated(QString)'), self.sampleRunTest)
-		self.connect(self.ui.cboSampleConfIntervMethods, QtCore.SIGNAL('activated(QString)'), self.sampleRunTest)
-		self.connect(self.ui.cboSampleNominalCoverage, QtCore.SIGNAL('activated(QString)'), self.sampleRunTest)
-		self.connect(self.ui.cboSampleMultCompMethod, QtCore.SIGNAL('activated(QString)'), self.sampleMultCompCorrectionChanged)
-		self.connect(self.ui.btnSampleMultCompCorrectionInfo, QtCore.SIGNAL('clicked()'), self.sampleMultCompCorrectionInfo)
+		self.ui.cboSampleStatTests.activated.connect(self.sampleRunTest)
+		self.ui.cboSampleSignTestType.activated.connect(self.sampleRunTest)
+		self.ui.cboSampleConfIntervMethods.activated.connect(self.sampleRunTest)
+		self.ui.cboSampleNominalCoverage.activated.connect(self.sampleRunTest)
+		self.ui.cboSampleMultCompMethod.activated.connect(self.sampleMultCompCorrectionChanged)
+		self.ui.btnSampleMultCompCorrectionInfo.clicked.connect(self.sampleMultCompCorrectionInfo)
 
 		# connect filtering test widget signals to slots
-		self.connect(self.ui.chkSampleSelectFeatures, QtCore.SIGNAL('toggled(bool)'), self.sampleSelectFeaturesCheckbox)
-		self.connect(self.ui.btnSampleSelectFeatures, QtCore.SIGNAL('clicked()'), self.sampleSelectFeaturesDlg)
+		self.ui.chkSampleSelectFeatures.toggled.connect(self.sampleSelectFeaturesCheckbox)
+		self.ui.btnSampleSelectFeatures.clicked.connect(self.sampleSelectFeaturesDlg)
 
-		self.connect(self.ui.chkSampleEnableSignLevelFilter, QtCore.SIGNAL('toggled(bool)'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleSignLevelFilter, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
+		self.ui.chkSampleEnableSignLevelFilter.toggled.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleSignLevelFilter.editingFinished.connect(self.sampleFilteringPropChanged)
 
-		self.connect(self.ui.cboSampleSeqFilter, QtCore.SIGNAL('activated(QString)'), self.sampleSeqFilterChanged)
-		self.connect(self.ui.chkSampleEnableSeqFilter, QtCore.SIGNAL('toggled(bool)'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleFilterSample1, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleFilterSample2, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
+		self.ui.cboSampleSeqFilter.activated.connect(self.sampleSeqFilterChanged)
+		self.ui.chkSampleEnableSeqFilter.toggled.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleFilterSample1.editingFinished.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleFilterSample2.editingFinished.connect(self.sampleFilteringPropChanged)
 
-		self.connect(self.ui.cboSampleParentSeqFilter, QtCore.SIGNAL('activated(QString)'), self.sampleParentSeqFilterChanged)
-		self.connect(self.ui.chkSampleEnableParentSeqFilter, QtCore.SIGNAL('toggled(bool)'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleParentFilterSample1, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleParentFilterSample2, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
+		self.ui.cboSampleParentSeqFilter.activated.connect(self.sampleParentSeqFilterChanged)
+		self.ui.chkSampleEnableParentSeqFilter.toggled.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleParentFilterSample1.editingFinished.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleParentFilterSample2.editingFinished.connect(self.sampleFilteringPropChanged)
 
-		self.connect(self.ui.radioSampleOR, QtCore.SIGNAL('clicked()'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.radioSampleAND, QtCore.SIGNAL('clicked()'), self.sampleFilteringPropChanged)
+		self.ui.radioSampleOR.clicked.connect(self.sampleFilteringPropChanged)
+		self.ui.radioSampleAND.clicked.connect(self.sampleFilteringPropChanged)
 
-		self.connect(self.ui.cboSampleEffectSizeMeasure1, QtCore.SIGNAL('activated(QString)'), self.sampleChangeEffectSizeMeasure)
-		self.connect(self.ui.cboSampleEffectSizeMeasure2, QtCore.SIGNAL('activated(QString)'), self.sampleChangeEffectSizeMeasure)
-		self.connect(self.ui.spinSampleMinEffectSize1, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.spinSampleMinEffectSize2, QtCore.SIGNAL('editingFinished()'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.chkSampleEnableEffectSizeFilter1, QtCore.SIGNAL('toggled(bool)'), self.sampleFilteringPropChanged)
-		self.connect(self.ui.chkSampleEnableEffectSizeFilter2, QtCore.SIGNAL('toggled(bool)'), self.sampleFilteringPropChanged)
+		self.ui.cboSampleEffectSizeMeasure1.activated.connect(self.sampleChangeEffectSizeMeasure)
+		self.ui.cboSampleEffectSizeMeasure2.activated.connect(self.sampleChangeEffectSizeMeasure)
+		self.ui.spinSampleMinEffectSize1.editingFinished.connect(self.sampleFilteringPropChanged)
+		self.ui.spinSampleMinEffectSize2.editingFinished.connect(self.sampleFilteringPropChanged)
+		self.ui.chkSampleEnableEffectSizeFilter1.toggled.connect(self.sampleFilteringPropChanged)
+		self.ui.chkSampleEnableEffectSizeFilter2.toggled.connect(self.sampleFilteringPropChanged)
 
 		# connect statistical plot page widget signals to slots
-		self.connect(self.ui.cboSamplePlots, QtCore.SIGNAL('activated(QString)'), self.samplePlotUpdate)
-		self.connect(self.ui.btnSampleConfigurePlot, QtCore.SIGNAL('clicked()'), self.samplePlotConfigure)
-		self.connect(self.ui.cboSampleHighlightHierarchy, QtCore.SIGNAL('activated(QString)'), self.sampleHighlightHierarchyChanged)
-		self.connect(self.ui.cboSampleHighlightFeature, QtCore.SIGNAL('activated(QString)'), self.sampleHighlightFeatureChanged)
+		self.ui.cboSamplePlots.activated.connect(self.samplePlotUpdate)
+		self.ui.btnSampleConfigurePlot.clicked.connect(self.samplePlotConfigure)
+		self.ui.cboSampleHighlightHierarchy.activated.connect(self.sampleHighlightHierarchyChanged)
+		self.ui.cboSampleHighlightFeature.activated.connect(self.sampleHighlightFeatureChanged)
 
 		# initialize dynamic GUI elements
 		self.setSample1Colour(self.preferences['Sample 1 colour'])
@@ -306,7 +307,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.groupTable = StatsTableDlg(self.preferences, self)
 		self.groupTable.setWindowTitle('Two group statistics table')
 		self.groupTable.setVisible(False)
-		self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.groupTable)
+		self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.groupTable)
 		self.groupTable.setFloating(True)
 
 		self.groupTable.toggleViewAction().setShortcut("Ctrl+G")
@@ -329,61 +330,61 @@ class MainWindow(QtGui.QMainWindow):
 		pluginManager.populateComboBox(self.groupEffectSizeDict, self.ui.cboGroupEffectSizeMeasure2, 'Ratio of proportions')
 
 		# widget controls in sidebar
-		self.connect(self.ui.btnGroupProfileTab, QtCore.SIGNAL('clicked()'), self.groupProfileTabClicked)
-		self.connect(self.ui.btnGroupProfileArrow, QtCore.SIGNAL('clicked()'), self.groupProfileTabClicked)
-		self.connect(self.ui.btnGroupStatisticsTab, QtCore.SIGNAL('clicked()'), self.groupPropTabClicked)
-		self.connect(self.ui.btnGroupStatisticsArrow, QtCore.SIGNAL('clicked()'), self.groupPropTabClicked)
-		self.connect(self.ui.btnGroupFilteringTab, QtCore.SIGNAL('clicked()'), self.groupFilteringTabClicked)
-		self.connect(self.ui.btnGroupFilteringArrow, QtCore.SIGNAL('clicked()'), self.groupFilteringTabClicked)
+		self.ui.btnGroupProfileTab.clicked.connect(self.groupProfileTabClicked)
+		self.ui.btnGroupProfileArrow.clicked.connect(self.groupProfileTabClicked)
+		self.ui.btnGroupStatisticsTab.clicked.connect(self.groupPropTabClicked)
+		self.ui.btnGroupStatisticsArrow.clicked.connect(self.groupPropTabClicked)
+		self.ui.btnGroupFilteringTab.clicked.connect(self.groupFilteringTabClicked)
+		self.ui.btnGroupFilteringArrow.clicked.connect(self.groupFilteringTabClicked)
 
 		# connect profile widget signals to slots
-		self.connect(self.ui.cboGroup1, QtCore.SIGNAL('activated(QString)'), self.groupHierarchicalLevelsChanged)
-		self.connect(self.ui.cboGroup2, QtCore.SIGNAL('activated(QString)'), self.groupHierarchicalLevelsChanged)
-		self.connect(self.ui.btnGroup1Colour, QtCore.SIGNAL('clicked()'), self.group1ColourDlg)
-		self.connect(self.ui.btnGroup2Colour, QtCore.SIGNAL('clicked()'), self.group2ColourDlg)
+		self.ui.cboGroup1.activated.connect(self.groupHierarchicalLevelsChanged)
+		self.ui.cboGroup2.activated.connect(self.groupHierarchicalLevelsChanged)
+		self.ui.btnGroup1Colour.clicked.connect(self.group1ColourDlg)
+		self.ui.btnGroup2Colour.clicked.connect(self.group2ColourDlg)
 
 		# connect statistical test widget signals to slots
-		self.connect(self.ui.cboGroupStatTests, QtCore.SIGNAL('activated(QString)'), self.groupRunTest)
-		self.connect(self.ui.cboGroupSignTestType, QtCore.SIGNAL('activated(QString)'), self.groupRunTest)
-		self.connect(self.ui.cboGroupConfIntervMethods, QtCore.SIGNAL('activated(QString)'), self.groupRunTest)
-		self.connect(self.ui.cboGroupNominalCoverage, QtCore.SIGNAL('activated(QString)'), self.groupRunTest)
-		self.connect(self.ui.cboGroupMultCompMethod, QtCore.SIGNAL('activated(QString)'), self.groupMultCompCorrectionChanged)
-		self.connect(self.ui.btnGroupMultCompCorrectionInfo, QtCore.SIGNAL('clicked()'), self.groupMultCompCorrectionInfo)
+		self.ui.cboGroupStatTests.activated.connect(self.groupRunTest)
+		self.ui.cboGroupSignTestType.activated.connect(self.groupRunTest)
+		self.ui.cboGroupConfIntervMethods.activated.connect(self.groupRunTest)
+		self.ui.cboGroupNominalCoverage.activated.connect(self.groupRunTest)
+		self.ui.cboGroupMultCompMethod.activated.connect(self.groupMultCompCorrectionChanged)
+		self.ui.btnGroupMultCompCorrectionInfo.clicked.connect(self.groupMultCompCorrectionInfo)
 
 		# connect filtering test widget signals to slots
-		self.connect(self.ui.chkGroupSelectFeatures, QtCore.SIGNAL('toggled(bool)'), self.groupSelectFeaturesCheckbox)
-		self.connect(self.ui.btnGroupSelectFeatures, QtCore.SIGNAL('clicked()'), self.groupSelectFeaturesDlg)
+		self.ui.chkGroupSelectFeatures.toggled.connect(self.groupSelectFeaturesCheckbox)
+		self.ui.btnGroupSelectFeatures.clicked.connect(self.groupSelectFeaturesDlg)
 
-		self.connect(self.ui.chkGroupEnableSignLevelFilter, QtCore.SIGNAL('toggled(bool)'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupSignLevelFilter, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
+		self.ui.chkGroupEnableSignLevelFilter.toggled.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupSignLevelFilter.editingFinished.connect(self.groupFilteringPropChanged)
 
-		self.connect(self.ui.cboGroupSeqFilter, QtCore.SIGNAL('activated(QString)'), self.groupSeqFilterChanged)
-		self.connect(self.ui.chkGroupEnableSeqFilter, QtCore.SIGNAL('toggled(bool)'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupFilter1, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupFilter2, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
+		self.ui.cboGroupSeqFilter.activated.connect(self.groupSeqFilterChanged)
+		self.ui.chkGroupEnableSeqFilter.toggled.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupFilter1.editingFinished.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupFilter2.editingFinished.connect(self.groupFilteringPropChanged)
 
-		self.connect(self.ui.cboGroupParentSeqFilter, QtCore.SIGNAL('activated(QString)'), self.groupParentSeqFilterChanged)
-		self.connect(self.ui.chkGroupEnableParentSeqFilter, QtCore.SIGNAL('toggled(bool)'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupParentFilter1, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupParentFilter2, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
+		self.ui.cboGroupParentSeqFilter.activated.connect(self.groupParentSeqFilterChanged)
+		self.ui.chkGroupEnableParentSeqFilter.toggled.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupParentFilter1.editingFinished.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupParentFilter2.editingFinished.connect(self.groupFilteringPropChanged)
 
-		self.connect(self.ui.radioGroupOR, QtCore.SIGNAL('clicked()'), self.groupFilteringPropChanged)
-		self.connect(self.ui.radioGroupAND, QtCore.SIGNAL('clicked()'), self.groupFilteringPropChanged)
+		self.ui.radioGroupOR.clicked.connect(self.groupFilteringPropChanged)
+		self.ui.radioGroupAND.clicked.connect(self.groupFilteringPropChanged)
 
-		self.connect(self.ui.cboGroupEffectSizeMeasure1, QtCore.SIGNAL('activated(QString)'), self.groupChangeEffectSizeMeasure)
-		self.connect(self.ui.cboGroupEffectSizeMeasure2, QtCore.SIGNAL('activated(QString)'), self.groupChangeEffectSizeMeasure)
-		self.connect(self.ui.spinGroupMinEffectSize1, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
-		self.connect(self.ui.spinGroupMinEffectSize2, QtCore.SIGNAL('editingFinished()'), self.groupFilteringPropChanged)
-		self.connect(self.ui.chkGroupEnableEffectSizeFilter1, QtCore.SIGNAL('toggled(bool)'), self.groupFilteringPropChanged)
-		self.connect(self.ui.chkGroupEnableEffectSizeFilter2, QtCore.SIGNAL('toggled(bool)'), self.groupFilteringPropChanged)
+		self.ui.cboGroupEffectSizeMeasure1.activated.connect(self.groupChangeEffectSizeMeasure)
+		self.ui.cboGroupEffectSizeMeasure2.activated.connect(self.groupChangeEffectSizeMeasure)
+		self.ui.spinGroupMinEffectSize1.editingFinished.connect(self.groupFilteringPropChanged)
+		self.ui.spinGroupMinEffectSize2.editingFinished.connect(self.groupFilteringPropChanged)
+		self.ui.chkGroupEnableEffectSizeFilter1.toggled.connect(self.groupFilteringPropChanged)
+		self.ui.chkGroupEnableEffectSizeFilter2.toggled.connect(self.groupFilteringPropChanged)
 
-		self.connect(self.ui.chkShowActiveFeaturesGroupTable, QtCore.SIGNAL('clicked()'), self.groupFeaturesTableUpdate)
+		self.ui.chkShowActiveFeaturesGroupTable.clicked.connect(self.groupFeaturesTableUpdate)
 
 		# connect statistical plot page widget signals to slots
-		self.connect(self.ui.cboGroupPlots, QtCore.SIGNAL('activated(QString)'), self.groupPlotUpdate)
-		self.connect(self.ui.btnGroupConfigurePlot, QtCore.SIGNAL('clicked()'), self.groupPlotConfigure)
-		self.connect(self.ui.cboGroupHighlightHierarchy, QtCore.SIGNAL('activated(QString)'), self.groupHighlightHierarchyChanged)
-		self.connect(self.ui.cboGroupHighlightFeature, QtCore.SIGNAL('activated(QString)'), self.groupHighlightFeatureChanged)
+		self.ui.cboGroupPlots.activated.connect(self.groupPlotUpdate)
+		self.ui.btnGroupConfigurePlot.clicked.connect(self.groupPlotConfigure)
+		self.ui.cboGroupHighlightHierarchy.activated.connect(self.groupHighlightHierarchyChanged)
+		self.ui.cboGroupHighlightFeature.activated.connect(self.groupHighlightFeatureChanged)
 
 		# initialize dynamic GUI elements
 		self.setGroup1Colour(self.groupLegendDlg.groupColours[0], False)
@@ -398,7 +399,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupTable = StatsTableDlg(self.preferences, self)
 		self.multiGroupTable.setWindowTitle('Multiple group statistics table')
 		self.multiGroupTable.setVisible(False)
-		self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.multiGroupTable)
+		self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.multiGroupTable)
 		self.multiGroupTable.setFloating(True)
 
 		self.multiGroupTable.toggleViewAction().setShortcut("Ctrl+M")
@@ -423,35 +424,35 @@ class MainWindow(QtGui.QMainWindow):
 		pluginManager.populateComboBox(self.multiGroupEffectSizeDict, self.ui.cboMultiGroupEffectSizeMeasure, 'Eta-squared')
 
 		# widget controls in sidebar
-		self.connect(self.ui.btnMultiGroupStatisticsTab, QtCore.SIGNAL('clicked()'), self.multiGroupPropTabClicked)
-		self.connect(self.ui.btnMultiGroupStatisticsArrow, QtCore.SIGNAL('clicked()'), self.multiGroupPropTabClicked)
-		self.connect(self.ui.btnMultiGroupFilteringTab, QtCore.SIGNAL('clicked()'), self.multiGroupFilteringTabClicked)
-		self.connect(self.ui.btnMultiGroupFilteringArrow, QtCore.SIGNAL('clicked()'), self.multiGroupFilteringTabClicked)
+		self.ui.btnMultiGroupStatisticsTab.clicked.connect(self.multiGroupPropTabClicked)
+		self.ui.btnMultiGroupStatisticsArrow.clicked.connect(self.multiGroupPropTabClicked)
+		self.ui.btnMultiGroupFilteringTab.clicked.connect(self.multiGroupFilteringTabClicked)
+		self.ui.btnMultiGroupFilteringArrow.clicked.connect(self.multiGroupFilteringTabClicked)
 
 		# connect statistical test widget signals to slots
-		self.connect(self.ui.cboMultiGroupStatTests, QtCore.SIGNAL('activated(QString)'), self.multiGroupRunTest)
-		self.connect(self.ui.cboMultiGroupMultCompMethod, QtCore.SIGNAL('activated(QString)'), self.multiGroupMultCompCorrectionChanged)
-		self.connect(self.ui.btnMultiGroupMultCompCorrectionInfo, QtCore.SIGNAL('clicked()'), self.multiGroupMultCompCorrectionInfo)
-		self.connect(self.ui.cboPostHocTest, QtCore.SIGNAL('activated(QString)'), self.multiGroupPlotUpdate)
-		self.connect(self.ui.cboMultiGroupNominalCoverage, QtCore.SIGNAL('activated(QString)'), self.multiGroupPlotUpdate)
+		self.ui.cboMultiGroupStatTests.activated.connect(self.multiGroupRunTest)
+		self.ui.cboMultiGroupMultCompMethod.activated.connect(self.multiGroupMultCompCorrectionChanged)
+		self.ui.btnMultiGroupMultCompCorrectionInfo.clicked.connect(self.multiGroupMultCompCorrectionInfo)
+		self.ui.cboPostHocTest.activated.connect(self.multiGroupPlotUpdate)
+		self.ui.cboMultiGroupNominalCoverage.activated.connect(self.multiGroupPlotUpdate)
 
 		# connect filtering test widget signals to slots
-		self.connect(self.ui.chkMultiGroupSelectFeatures, QtCore.SIGNAL('toggled(bool)'), self.multiGroupSelectFeaturesCheckbox)
-		self.connect(self.ui.btnMultiGroupSelectFeatures, QtCore.SIGNAL('clicked()'), self.multiGroupSelectFeaturesDlg)
+		self.ui.chkMultiGroupSelectFeatures.toggled.connect(self.multiGroupSelectFeaturesCheckbox)
+		self.ui.btnMultiGroupSelectFeatures.clicked.connect(self.multiGroupSelectFeaturesDlg)
 
-		self.connect(self.ui.chkMultiGroupEnableSignLevelFilter, QtCore.SIGNAL('toggled(bool)'), self.multiGroupFilteringPropChanged)
-		self.connect(self.ui.spinMultiGroupSignLevelFilter, QtCore.SIGNAL('editingFinished()'), self.multiGroupFilteringPropChanged)
+		self.ui.chkMultiGroupEnableSignLevelFilter.toggled.connect(self.multiGroupFilteringPropChanged)
+		self.ui.spinMultiGroupSignLevelFilter.editingFinished.connect(self.multiGroupFilteringPropChanged)
 
-		self.connect(self.ui.spinMultiGroupMinEffectSize, QtCore.SIGNAL('editingFinished()'), self.multiGroupFilteringPropChanged)
-		self.connect(self.ui.chkMultiGroupEnableEffectSizeFilter, QtCore.SIGNAL('toggled(bool)'), self.multiGroupFilteringPropChanged)
+		self.ui.spinMultiGroupMinEffectSize.editingFinished.connect(self.multiGroupFilteringPropChanged)
+		self.ui.chkMultiGroupEnableEffectSizeFilter.toggled.connect(self.multiGroupFilteringPropChanged)
 
-		self.connect(self.ui.chkShowActiveFeaturesMultiGroupTable, QtCore.SIGNAL('clicked()'), self.multiGroupFeaturesTableUpdate)
+		self.ui.chkShowActiveFeaturesMultiGroupTable.clicked.connect(self.multiGroupFeaturesTableUpdate)
 
 		# connect statistical plot page widget signals to slots
-		self.connect(self.ui.cboMultiGroupPlots, QtCore.SIGNAL('activated(QString)'), self.multiGroupPlotUpdate)
-		self.connect(self.ui.btnMultiGroupConfigurePlot, QtCore.SIGNAL('clicked()'), self.multiGroupPlotConfigure)
-		self.connect(self.ui.cboMultiGroupHighlightHierarchy, QtCore.SIGNAL('activated(QString)'), self.multiGroupHighlightHierarchyChanged)
-		self.connect(self.ui.cboMultiGroupHighlightFeature, QtCore.SIGNAL('activated(QString)'), self.multiGroupHighlightFeatureChanged)
+		self.ui.cboMultiGroupPlots.activated.connect(self.multiGroupPlotUpdate)
+		self.ui.btnMultiGroupConfigurePlot.clicked.connect(self.multiGroupPlotConfigure)
+		self.ui.cboMultiGroupHighlightHierarchy.activated.connect(self.multiGroupHighlightHierarchyChanged)
+		self.ui.cboMultiGroupHighlightFeature.activated.connect(self.multiGroupHighlightFeatureChanged)
 
 	def autoRecalculateChanged(self, checked):
 		self.bAutoRecalculate = checked
@@ -540,7 +541,7 @@ class MainWindow(QtGui.QMainWindow):
 
 	def appendCategoriesCOG(self):
 		assignCOGsDlg = AssignCOGsDlg(self.preferences, self)
-		assignCOGsDlg.exec_()
+		assignCOGsDlg.exec()
 
 	def sampleProfileTabClicked(self):
 		self.ui.widgetSampleProfile.setVisible(not self.ui.widgetSampleProfile.isVisible())
@@ -577,9 +578,9 @@ class MainWindow(QtGui.QMainWindow):
 	def updateSideBarTabIcon(self, tab, arrowButton):
 		icon = QtGui.QIcon()
 		if tab.isVisible():
-			icon.addPixmap(QtGui.QPixmap(":/icons/icons/downArrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+			icon.addPixmap(QtGui.QPixmap(":/icons/icons/downArrow.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
 		else:
-			icon.addPixmap(QtGui.QPixmap(":/icons/icons/rightArrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+			icon.addPixmap(QtGui.QPixmap(":/icons/icons/rightArrow.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
 		arrowButton.setIcon(icon)
 
 	def prefrencesDlg(self):
@@ -593,7 +594,7 @@ class MainWindow(QtGui.QMainWindow):
 		preferencesDlg.setAxesButtonColour(self.preferences['Axes colour'])
 		preferencesDlg.setAllOtherSamplesButtonColour(self.preferences['All other samples colour'])
 
-		if preferencesDlg.exec_() == QtGui.QDialog.Accepted:
+		if preferencesDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			self.preferences['Pseudocount'] = preferencesDlg.ui.spinPseudoCount.value()
 			self.preferences['Replicates'] = preferencesDlg.ui.spinReplicates.value()
 			self.preferences['Truncate feature names'] = preferencesDlg.ui.chkTruncateFeatureNames.isChecked()
@@ -611,15 +612,15 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupPlotUpdate()
 
 	def samplePlotUpdate(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 		if self.sampleStatsTest.results.data != []:
 			self.samplePlot.update(self.sampleProfile, self.sampleStatsTest.results)
 		else:
 			self.samplePlot.update(None, None)
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def groupPlotUpdate(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		# update plot
 		if self.groupStatsTest.results.data != []:
@@ -631,16 +632,16 @@ class MainWindow(QtGui.QMainWindow):
 		self.ui.cboGroupHighlightFeature.setEnabled(self.groupPlot.currentPlot.bSupportsHighlight)
 		self.ui.frameGroupTable.setVisible(self.groupPlot.currentPlot.bPlotFeaturesIndividually)
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def multiGroupPlotUpdate(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		# update plot
 		if self.multiGroupStatsTest.results.data != []:
 			if self.multiGroupPlot.checkFlags().bRunPostHocTest:
 				coverage = float(self.ui.cboMultiGroupNominalCoverage.currentText())
-				postHocTest = self.postHocTestDict[str(self.ui.cboPostHocTest.currentText(), 'latin-1')]
+				postHocTest = self.postHocTestDict[str(self.ui.cboPostHocTest.currentText())]
 				self.multiGroupStatsTest.runPostHocTest(postHocTest, self.multiGroupProfile, self.preferences['Selected multiple group feature'], coverage)
 
 			self.multiGroupPlot.update(self.multiGroupProfile, self.multiGroupStatsTest.results)
@@ -651,7 +652,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.ui.cboMultiGroupHighlightFeature.setEnabled(self.multiGroupPlot.currentPlot.bSupportsHighlight)
 		self.ui.frameMultiGroupTable.setVisible(self.multiGroupPlot.currentPlot.bPlotFeaturesIndividually)
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def samplePlotConfigure(self):
 		self.samplePlot.configure(self.sampleProfile, self.sampleStatsTest.results)
@@ -663,7 +664,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupPlot.configure(self.multiGroupProfile, self.multiGroupStatsTest.results)
 
 	def sample1ColourDlg(self):
-		colour = QtGui.QColorDialog.getColor(self.preferences['Sample 1 colour'], self, 'Colour for sample 1')
+		colour = QtWidgets.QColorDialog.getColor(self.preferences['Sample 1 colour'], self, 'Colour for sample 1')
 
 		if colour.isValid():
 			self.preferences['Sample 1 colour'] = colour
@@ -675,7 +676,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.samplePlotUpdate()
 
 	def sample2ColourDlg(self):
-		colour = QtGui.QColorDialog.getColor(self.preferences['Sample 2 colour'], self, 'Colour for sample 2')
+		colour = QtWidgets.QColorDialog.getColor(self.preferences['Sample 2 colour'], self, 'Colour for sample 2')
 
 		if colour.isValid():
 			self.preferences['Sample 2 colour'] = colour
@@ -687,7 +688,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.samplePlotUpdate()
 
 	def group1ColourDlg(self):
-		colour = QtGui.QColorDialog.getColor(self.preferences['Group colours'][self.groupProfile.groupName1], self, 'Colour for group 1')
+		colour = QtWidgets.QColorDialog.getColor(self.preferences['Group colours'][self.groupProfile.groupName1], self, 'Colour for group 1')
 
 		if colour.isValid():
 			self.setGroup1Colour(colour)
@@ -702,7 +703,7 @@ class MainWindow(QtGui.QMainWindow):
 			self.groupPlotUpdate()
 
 	def group2ColourDlg(self):
-		colour = QtGui.QColorDialog.getColor(self.preferences['Group colours'][self.groupProfile.groupName2], self, 'Colour for group 2')
+		colour = QtWidgets.QColorDialog.getColor(self.preferences['Group colours'][self.groupProfile.groupName2], self, 'Colour for group 2')
 
 		if colour.isValid():
 			self.setGroup2Colour(colour)
@@ -721,31 +722,31 @@ class MainWindow(QtGui.QMainWindow):
 
 	def createProfileMgRast(self):
 		createProfileMgRastDlg = CreateProfileMgRastDlg(self.preferences, self)
-		createProfileMgRastDlg.exec_()
+		createProfileMgRastDlg.exec()
 
 	def createProfileRita(self):
 		createProfileRITADlg = CreateProfileRITADlg(self.preferences, self)
-		createProfileRITADlg.exec_()
+		createProfileRITADlg.exec()
 
 	def createProfileComet(self):
 		createProfileCoMetDlg = CreateProfileCoMetDlg(self.preferences, self)
-		createProfileCoMetDlg.exec_()
+		createProfileCoMetDlg.exec()
 
 	def createProfileMothur(self):
 		createProfileMothurDlg = CreateProfileMothurDlg(self.preferences, self)
-		createProfileMothurDlg.exec_()
+		createProfileMothurDlg.exec()
 
 	def createProfileBIOM(self):
 		createProfileBiomDlg = CreateProfileBiomDlg(self.preferences, self)
-		createProfileBiomDlg.exec_()
+		createProfileBiomDlg.exec()
 
 	def loadProfile(self):
 		loadDataDlg = LoadDataDlg(self.preferences, self)
-		if loadDataDlg.exec_() == QtGui.QDialog.Accepted:
+		if loadDataDlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			profileFile = loadDataDlg.getProfileFile()
 			if profileFile == '':
 				return
-			self.preferences['Last directory'] = profileFile[0:profileFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = profileFile[0:profileFile.rfind('/')]
 
 			metadataFile = loadDataDlg.getMetadataFile()
 
@@ -755,10 +756,10 @@ class MainWindow(QtGui.QMainWindow):
 				self.profileTree, errMsg = stampIO.read(profileFile)
 
 				if errMsg != None:
-					QtGui.QMessageBox.information(self, 'Error reading profile file', errMsg, QtGui.QMessageBox.Warning)
+					QtWidgets.QMessageBox.information(self, 'Error reading profile file', errMsg, QtWidgets.QMessageBox.StandardButton.Ok)
 					return
 			except:
-				QtGui.QMessageBox.information(self, 'Error reading profile file', 'Unknown parsing error.', QtGui.QMessageBox.Warning)
+				QtWidgets.QMessageBox.information(self, 'Error reading profile file', 'Unknown parsing error.', QtWidgets.QMessageBox.StandardButton.Ok)
 				return
 
 			self.metadata = None
@@ -768,12 +769,12 @@ class MainWindow(QtGui.QMainWindow):
 					self.metadata, warningMsg = metadataIO.read(metadataFile, self.profileTree)
 
 					if warningMsg != None:
-						QtGui.QMessageBox.information(self, 'Metadata warnings', warningMsg)
+						QtWidgets.QMessageBox.information(self, 'Metadata warnings', warningMsg)
 				except:
-					QtGui.QMessageBox.information(self, 'Error reading metadata file', 'Unknown parsing error.', QtGui.QMessageBox.Warning)
+					QtWidgets.QMessageBox.information(self, 'Error reading metadata file', 'Unknown parsing error.', QtWidgets.QMessageBox.StandardButton.Ok)
 					return
 
-			QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+			QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 			# populate sample combo boxes
 			self.populateSampleComboBoxes()
@@ -815,7 +816,7 @@ class MainWindow(QtGui.QMainWindow):
 			self.multiGroupFeaturesTableUpdate()
 			self.metadataDlg.setTable(self.metadata)
 
-			QtGui.QApplication.instance().restoreOverrideCursor()
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def populateGroupComboBoxes(self):
 		self.ui.cboGroup1.clear()
@@ -832,7 +833,7 @@ class MainWindow(QtGui.QMainWindow):
 		parentDepth = self.profileTree.getHierarchicalLevelDepth(str(self.ui.cboParentalLevel.currentText()))
 		profileDepth = self.profileTree.getHierarchicalLevelDepth(str(self.ui.cboProfileLevel.currentText()))
 		if parentDepth >= profileDepth:
-			QtGui.QMessageBox.information(self, 'Invalid profile', 'The parent level must be higher in the hierarchy than the profile level.', QtGui.QMessageBox.Warning)
+			QtWidgets.QMessageBox.information(self, 'Invalid profile', 'The parent level must be higher in the hierarchy than the profile level.', QtWidgets.QMessageBox.StandardButton.Ok)
 			self.ui.cboParentalLevel.setCurrentIndex(0)
 
 		self.sampleHierarchicalLevelsChanged()
@@ -844,7 +845,7 @@ class MainWindow(QtGui.QMainWindow):
 		profileDepth = self.profileTree.getHierarchicalLevelDepth(str(self.ui.cboProfileLevel.currentText()))
 
 		if profileDepth <= parentDepth:
-			QtGui.QMessageBox.information(self, 'Invalid profile', 'The profile level must be deeper in the hierarchy than the parent level.', QtGui.QMessageBox.Warning)
+			QtWidgets.QMessageBox.information(self, 'Invalid profile', 'The profile level must be deeper in the hierarchy than the parent level.', QtWidgets.QMessageBox.StandardButton.Ok)
 			self.ui.cboProfileLevel.setCurrentIndex(len(self.profileTree.hierarchyHeadings) - 1)
 			return
 
@@ -868,7 +869,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupRunTest()
 
 	def sampleHierarchicalLevelsChanged(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		# populate highlight hierarchy combo box
 		profileHeading = str(self.ui.cboProfileLevel.currentText())
@@ -886,7 +887,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.sampleStatsTest = SampleStatsTests(self.preferences)
 		self.sampleStatsTest.results.setSelectedFeatures(selectedFeatures)
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 		# run statistics
 		self.sampleRunTest()
@@ -897,14 +898,14 @@ class MainWindow(QtGui.QMainWindow):
 		if self.metadata == None:
 			return
 
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		# set group colours
 		groupName1 = str(self.ui.cboGroup1.currentText())
 		groupName2 = str(self.ui.cboGroup2.currentText())
 
 		if groupName1 == '' or groupName2 == '':
-			QtGui.QApplication.instance().restoreOverrideCursor()
+			QtWidgets.QApplication.instance().restoreOverrideCursor()
 			return
 
 		# populate highlight hierarchy combo box
@@ -923,7 +924,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.groupStatsTest = GroupStatsTests(self.preferences)
 		self.groupStatsTest.results.setSelectedFeatures(selectedFeatures)
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 		# run statistics
 		self.groupRunTest()
@@ -934,7 +935,7 @@ class MainWindow(QtGui.QMainWindow):
 		if self.metadata == None:
 			return
 
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		# populate highlight hierarchy combo box
 		profileHeading = str(self.ui.cboProfileLevel.currentText())
@@ -952,7 +953,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupStatsTest = MultiGroupStatsTests(self.preferences)
 		self.multiGroupStatsTest.results.setSelectedFeatures(selectedFeatures)
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 		# run test
 		self.multiGroupRunTest()
@@ -978,16 +979,16 @@ class MainWindow(QtGui.QMainWindow):
 			self.preferences['Selected group feature'] = ''
 
 		self.groupFeatureTable = GenericTable(tableData, ['Feature', 'Diff. between means', 'p-value', 'Corrected p-value', 'Note'], self)
-		self.groupFeatureTable.sort(0, QtCore.Qt.AscendingOrder)  # start with features in alphabetical order
+		self.groupFeatureTable.sort(0, QtCore.Qt.SortOrder.AscendingOrder)  # start with features in alphabetical order
 
 		self.ui.tableGroupFeatures.horizontalHeader().setStretchLastSection(True)
 		self.ui.tableGroupFeatures.setModel(self.groupFeatureTable)
 		self.ui.tableGroupFeatures.verticalHeader().setVisible(True)
 		self.ui.tableGroupFeatures.resizeColumnsToContents()
 
-		self.tableGroupSelectionModel = QtGui.QItemSelectionModel(self.groupFeatureTable, self.ui.tableGroupFeatures)
+		self.tableGroupSelectionModel = QtCore.QItemSelectionModel(self.groupFeatureTable, self.ui.tableGroupFeatures)
 		self.ui.tableGroupFeatures.setSelectionModel(self.tableGroupSelectionModel)
-		self.connect(self.tableGroupSelectionModel, QtCore.SIGNAL('selectionChanged(const QItemSelection, const QItemSelection)'), self.groupTableFeatureChanged)
+		self.tableGroupSelectionModel.selectionChanged.connect(self.groupTableFeatureChanged)
 
 	def multiGroupFeaturesTableUpdate(self):
 		tableData = []
@@ -1008,25 +1009,25 @@ class MainWindow(QtGui.QMainWindow):
 			self.preferences['Selected multiple group feature'] = ''
 
 		self.multiGroupFeatureTable = GenericTable(tableData, ['Feature', 'Eta-squared', 'p-value', 'Corrected p-value', 'Note'], self)
-		self.multiGroupFeatureTable.sort(0, QtCore.Qt.AscendingOrder)  # start with features in alphabetical order
+		self.multiGroupFeatureTable.sort(0, QtCore.Qt.SortOrder.AscendingOrder)  # start with features in alphabetical order
 
 		self.ui.tableMultiGroupFeatures.horizontalHeader().setStretchLastSection(True)
 		self.ui.tableMultiGroupFeatures.setModel(self.multiGroupFeatureTable)
 		self.ui.tableMultiGroupFeatures.verticalHeader().setVisible(True)
 		self.ui.tableMultiGroupFeatures.resizeColumnsToContents()
 
-		self.tableMultiGroupSelectionModel = QtGui.QItemSelectionModel(self.multiGroupFeatureTable, self.ui.tableMultiGroupFeatures)
+		self.tableMultiGroupSelectionModel = QtCore.QItemSelectionModel(self.multiGroupFeatureTable, self.ui.tableMultiGroupFeatures)
 		self.ui.tableMultiGroupFeatures.setSelectionModel(self.tableMultiGroupSelectionModel)
-		self.connect(self.tableMultiGroupSelectionModel, QtCore.SIGNAL('selectionChanged(const QItemSelection, const QItemSelection)'), self.multiGroupSideTableFeatureChanged)
+		self.tableMultiGroupSelectionModel.selectionChanged.connect(self.multiGroupSideTableFeatureChanged)
 
 	def groupTableFeatureChanged(self, selected, deselected):
 		selectedRow = selected.indexes()[0]
-		self.preferences['Selected group feature'] = str(selectedRow.data(QtCore.Qt.DisplayRole).toString())
+		self.preferences['Selected group feature'] = str(selectedRow.data(QtCore.Qt.ItemDataRole.DisplayRole))
 		self.groupPlotUpdate()
 
 	def multiGroupSideTableFeatureChanged(self, selected, deselected):
 		selectedRow = selected.indexes()[0]
-		self.preferences['Selected multiple group feature'] = str(selectedRow.data(QtCore.Qt.DisplayRole).toString())
+		self.preferences['Selected multiple group feature'] = str(selectedRow.data(QtCore.Qt.ItemDataRole.DisplayRole))
 		self.multiGroupPlotUpdate()
 
 	def sampleRunTest(self):
@@ -1046,9 +1047,9 @@ class MainWindow(QtGui.QMainWindow):
 																		self.ui.cboUnclassified.currentText())
 
 			# show progress of test
-			progress = QtGui.QProgressDialog('Running two-sample statistical test...', 'Cancel', 0, len(self.sampleProfile.getFeatures()) + 1, self)
+			progress = QtWidgets.QProgressDialog('Running two-sample statistical test...', 'Cancel', 0, len(self.sampleProfile.getFeatures()) + 1, self)
 			progress.setWindowTitle('Progress')
-			progress.setWindowModality(QtCore.Qt.WindowModal)
+			progress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
 			progress.setVisible(True)
 
 			# run significance test
@@ -1094,9 +1095,9 @@ class MainWindow(QtGui.QMainWindow):
 				self.setGroup2Colour(self.preferences['All other samples colour'])
 
 			# show progress of test
-			progress = QtGui.QProgressDialog('Running two-group statistical test...', 'Cancel', 0, len(self.groupProfile.getFeatures()) + 1, self)
+			progress = QtWidgets.QProgressDialog('Running two-group statistical test...', 'Cancel', 0, len(self.groupProfile.getFeatures()) + 1, self)
 			progress.setWindowTitle('Progress')
-			progress.setWindowModality(QtCore.Qt.WindowModal)
+			progress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
 			progress.setVisible(True)
 
 			# run significance test
@@ -1134,9 +1135,9 @@ class MainWindow(QtGui.QMainWindow):
 
 		if len(self.multiGroupProfile.activeGroupNames) >= 2:
 			# show progress of test
-			progress = QtGui.QProgressDialog('Running multiple groups statistical test...', 'Cancel', 0, len(self.multiGroupProfile.getFeatures()) + 1, self)
+			progress = QtWidgets.QProgressDialog('Running multiple groups statistical test...', 'Cancel', 0, len(self.multiGroupProfile.getFeatures()) + 1, self)
 			progress.setWindowTitle('Progress')
-			progress.setWindowModality(QtCore.Qt.WindowModal)
+			progress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
 			progress.setVisible(True)
 
 			# run significance test
@@ -1199,23 +1200,23 @@ class MainWindow(QtGui.QMainWindow):
 	def sampleMultCompCorrectionInfo(self):
 		if self.sampleStatsTest.results.multCompCorrection != None:
 			multCompDlg = MultCompCorrectionInfoDlg(self, self.sampleStatsTest.results.multCompCorrectionInfo)
-			multCompDlg.exec_()
+			multCompDlg.exec()
 		else:
-			QtGui.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtWidgets.QMessageBox.StandardButton.Ok)
 
 	def groupMultCompCorrectionInfo(self):
 		if self.groupStatsTest.results.multCompCorrection != None:
 			multCompDlg = MultCompCorrectionInfoDlg(self, self.groupStatsTest.results.multCompCorrectionInfo)
-			multCompDlg.exec_()
+			multCompDlg.exec()
 		else:
-			QtGui.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtWidgets.QMessageBox.StandardButton.Ok)
 
 	def multiGroupMultCompCorrectionInfo(self):
 		if self.multiGroupStatsTest.results.multCompCorrection != None:
 			multCompDlg = MultCompCorrectionInfoDlg(self, self.multiGroupStatsTest.results.multCompCorrectionInfo)
-			multCompDlg.exec_()
+			multCompDlg.exec()
 		else:
-			QtGui.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Run test', 'Run hypothesis test first.', QtWidgets.QMessageBox.StandardButton.Ok)
 
 	def sampleSeqFilterChanged(self):
 		if self.ui.cboSampleSeqFilter.currentText() == 'maximum':
@@ -1338,7 +1339,7 @@ class MainWindow(QtGui.QMainWindow):
 	def sampleSelectFeaturesDlg(self):
 		selectFeatureDialog = SelectFeaturesDlg(self.sampleStatsTest.results, self)
 
-		if selectFeatureDialog.exec_() == QtGui.QDialog.Accepted:
+		if selectFeatureDialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			selectedFeatures = selectFeatureDialog.getSelectedFeatures()
 			self.sampleStatsTest.results.setSelectedFeatures(selectedFeatures)
 			self.sampleFilteringPropChanged()
@@ -1349,7 +1350,7 @@ class MainWindow(QtGui.QMainWindow):
 	def groupSelectFeaturesDlg(self):
 		selectFeatureDialog = SelectFeaturesDlg(self.groupStatsTest.results, self)
 
-		if selectFeatureDialog.exec_() == QtGui.QDialog.Accepted:
+		if selectFeatureDialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			selectedFeatures = selectFeatureDialog.getSelectedFeatures()
 			self.groupStatsTest.results.setSelectedFeatures(selectedFeatures)
 			self.groupFilteringPropChanged()
@@ -1360,7 +1361,7 @@ class MainWindow(QtGui.QMainWindow):
 	def multiGroupSelectFeaturesDlg(self):
 		selectFeatureDialog = SelectFeaturesDlg(self.multiGroupStatsTest.results, self)
 
-		if selectFeatureDialog.exec_() == QtGui.QDialog.Accepted:
+		if selectFeatureDialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
 			selectedFeatures = selectFeatureDialog.getSelectedFeatures()
 			self.multiGroupStatsTest.results.setSelectedFeatures(selectedFeatures)
 			self.multiGroupFilteringPropChanged()
@@ -1369,7 +1370,7 @@ class MainWindow(QtGui.QMainWindow):
 		if self.bAutoRecalculate == False:
 			return
 
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		if not self.ui.chkSampleSelectFeatures.isChecked():
 			self.sampleStatsTest.results.selectAllFeautres()
@@ -1428,13 +1429,13 @@ class MainWindow(QtGui.QMainWindow):
 		# update plots
 		self.samplePlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def groupApplyFilters(self):
 		if self.metadata == None or self.bAutoRecalculate == False:
 			return
 
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		if not self.ui.chkGroupSelectFeatures.isChecked():
 			self.groupStatsTest.results.selectAllFeautres()
@@ -1494,13 +1495,13 @@ class MainWindow(QtGui.QMainWindow):
 		# update plots
 		self.groupPlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def multiGroupApplyFilters(self):
 		if self.metadata == None or self.bAutoRecalculate == False:
 			return
 
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		if not self.ui.chkMultiGroupSelectFeatures.isChecked():
 			self.multiGroupStatsTest.results.selectAllFeautres()
@@ -1527,7 +1528,7 @@ class MainWindow(QtGui.QMainWindow):
 		# update plots
 		self.multiGroupPlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def sampleUpdateFilterInfo(self):
 		self.ui.txtSampleNumActiveFeatures.setText(str(len(self.sampleStatsTest.results.getActiveFeatures())))
@@ -1554,7 +1555,7 @@ class MainWindow(QtGui.QMainWindow):
 		features = list(features)
 		features.sort(key=str.lower)
 
-		featureStrList = QtCore.QStringList()
+		featureStrList = []
 		for feature in features:
 			featureStrList.append(feature)
 
@@ -1582,7 +1583,7 @@ class MainWindow(QtGui.QMainWindow):
 		features = list(features)
 		features.sort(key=str.lower)
 
-		featureStrList = QtCore.QStringList()
+		featureStrList = []
 		for feature in features:
 			featureStrList.append(feature)
 
@@ -1610,7 +1611,7 @@ class MainWindow(QtGui.QMainWindow):
 		features = list(features)
 		features.sort(key=str.lower)
 
-		featureStrList = QtCore.QStringList()
+		featureStrList = []
 		for feature in features:
 			featureStrList.append(feature)
 
@@ -1623,7 +1624,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.multiGroupHighlightFeatureChanged()
 
 	def sampleHighlightFeatureChanged(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		index = self.ui.cboSampleHighlightHierarchy.currentIndex() - 1
 		selectedFeature = self.ui.cboSampleHighlightFeature.currentText()
@@ -1636,10 +1637,10 @@ class MainWindow(QtGui.QMainWindow):
 
 		self.samplePlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def groupHighlightFeatureChanged(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		index = self.ui.cboGroupHighlightHierarchy.currentIndex() - 1
 		selectedFeature = self.ui.cboGroupHighlightFeature.currentText()
@@ -1652,10 +1653,10 @@ class MainWindow(QtGui.QMainWindow):
 
 		self.groupPlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def multiGroupHighlightFeatureChanged(self):
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
 		index = self.ui.cboMultiGroupHighlightHierarchy.currentIndex() - 1
 		selectedFeature = self.ui.cboMultiGroupHighlightFeature.currentText()
@@ -1668,7 +1669,7 @@ class MainWindow(QtGui.QMainWindow):
 
 		self.multiGroupPlotUpdate()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 
 	def saveImageDlg(self):
 		stackedWidget = self.ui.stackedWidgetViews
@@ -1679,27 +1680,27 @@ class MainWindow(QtGui.QMainWindow):
 		elif stackedWidget.currentIndex() == 0:
 			plotToSave = self.multiGroupPlot
 		else:
-			QtGui.QMessageBox.information(self, 'Select plot', 'A plot tab must be active to save a plot.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Select plot', 'A plot tab must be active to save a plot.', QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 
-		f = QtGui.QFileDialog.getSaveFileName(self, 'Save plot...', self.preferences['Last directory'],
+		f = QtWidgets.QFileDialog.getSaveFileName(self, 'Save plot...', self.preferences['Last directory'],
 								'Portable Network Graphics (*.png);;' +
 								'Portable Document Format (*.pdf);;' +
 								'PostScript (*.ps);;' +
 								'Encapsulated PostScript (*.eps);;' +
-								'Scalable Vector Graphics (*.svg)')
+								'Scalable Vector Graphics (*.svg)')[0]
 
 		if f != '':
-			self.preferences['Last directory'] = f[0:f.lastIndexOf('/')]
+			self.preferences['Last directory'] = f[0:f.rfind('/')]
 			try:
 				if f[len(f) - 3:len(f)] == 'png' or f[len(f) - 3:len(f)] == 'PNG':
-					dpi, ok = QtGui.QInputDialog.getInteger(self, 'Desired resolution', 'Enter desired resolution (DPI) of image:', 300)
+					dpi, ok = QtWidgets.QInputDialog.getInt(self, 'Desired resolution', 'Enter desired resolution (DPI) of image:', 300)
 					if ok:
 						plotToSave.save(str(f), dpi)
 				else:
 					plotToSave.save(str(f))
 			except IOError:
-					QtGui.QMessageBox.information(self, 'Failed to save image', 'Write permission for file denied.', QtGui.QMessageBox.Ok)
+					QtWidgets.QMessageBox.information(self, 'Failed to save image', 'Write permission for file denied.', QtWidgets.QMessageBox.StandardButton.Ok)
 
 	def sendPlotToWindow(self):
 		if self.ui.stackedWidgetViews.currentIndex() == 2:
@@ -1738,7 +1739,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.lblStatusBar.setText(message)
 
 	def openAboutDlg(self):
-		QtGui.QMessageBox.about(self, 'About...',
+		QtWidgets.QMessageBox.about(self, 'About...',
 				'STAMP: statistical analysis of taxonomic and functional profiles\n\n'
 				'%s\n'
 				'%s\n'
@@ -1770,19 +1771,26 @@ def exceptHook(exc_type, exc_value, exc_traceback):
 	# # KeyboardInterrupt is a special case.
 	# # We don't raise the error dialog when it occurs.
 	if issubclass(exc_type, KeyboardInterrupt):
-		if qApp():
-			qApp().quit()
+		if QtWidgets.QApplication.instance():
+			QtWidgets.QApplication.instance().quit()
 		return
 
 	filename, line, dummy, dummy = traceback.extract_tb(exc_traceback).pop()
 	filename = os.path.basename(filename)
 	error = "%s: %s" % (exc_type.__name__, exc_value)
 
-	QtGui.QMessageBox.critical(None, "Unknown error...",
+	QtWidgets.QMessageBox.critical(None, "Unknown error...",
 		"<center>An error has occured:<br/><br/>"
 	+ "<b><i>%s</i></b><br/>" % error
 	+ "It occured at <b>line %d</b> of file <b>%s</b>.<br/>" % (line, filename)
 	+ "</center>")
+
+def getMainDir():
+	# directory containing the stamp package (upstream used DirectoryHelper.getMainDir, built on py2exe/py2app and imp)
+	if getattr(sys, 'frozen', False):
+		return sys._MEIPASS	# PyInstaller
+
+	return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
 	# ignore numpy warnings as invalid results are handled within STAMP
@@ -1796,13 +1804,13 @@ def main():
 	settings = QtCore.QSettings("BeikoLab", "STAMP")
 	preferences = {}
 
-	preferences['Pseudocount'] = settings.value('Preferences/Pseudocount', 0.5).toDouble()[0]
-	preferences['Replicates'] = settings.value('Preferences/Replicates', 1000).toInt()[0]
-	preferences['Truncate feature names'] = settings.value('Preferences/Truncate feature names', True).toBool()
-	preferences['Length of truncated feature names'] = settings.value('Preferences/Length of truncated feature names', 50).toInt()[0]
-	preferences['Axes colour'] = QtGui.QColor(settings.value('Preferences/Axes colour', '#7f7f7f'))
-	preferences['All other samples colour'] = QtGui.QColor(settings.value('Preferences/All other samples colour', '#7f7f7f'))
-	preferences['Minimum reported p-value exponent'] = settings.value('Preferences/Minimum reported p-value exponent', -15).toDouble()[0]
+	preferences['Pseudocount'] = settings.value('Preferences/Pseudocount', 0.5, type=float)
+	preferences['Replicates'] = settings.value('Preferences/Replicates', 1000, type=int)
+	preferences['Truncate feature names'] = settings.value('Preferences/Truncate feature names', True, type=bool)
+	preferences['Length of truncated feature names'] = settings.value('Preferences/Length of truncated feature names', 50, type=int)
+	preferences['Axes colour'] = QtGui.QColor(settings.value('Preferences/Axes colour', '#7f7f7f', type=str))
+	preferences['All other samples colour'] = QtGui.QColor(settings.value('Preferences/All other samples colour', '#7f7f7f', type=str))
+	preferences['Minimum reported p-value exponent'] = settings.value('Preferences/Minimum reported p-value exponent', -15, type=float)
 
 	preferences['Sample 1 colour'] = QtGui.QColor(128, 177, 211)
 	preferences['Sample 2 colour'] = QtGui.QColor(253, 180, 98)
@@ -1816,23 +1824,24 @@ def main():
 	# set the current working directory
 	workingDir = getMainDir()
 	preferences['Last directory'] = ''
-	if 'STAMP.app/Contents/Resources' in workingDir:
-		workingDir = workingDir[0:len(workingDir) - len('/STAMP.app/Contents/Resources')]
+	if getattr(sys, 'frozen', False):
+		# frozen app: start in the folder holding STAMP.app (or the executable), as upstream did for STAMP.app
+		workingDir = os.path.dirname(sys.executable)
+		appIndex = workingDir.find('.app/Contents/')
+		if appIndex != -1:
+			workingDir = os.path.dirname(workingDir[0:appIndex + len('.app')])
 		preferences['Last directory'] = workingDir
 		os.chdir(workingDir)
 
-	if platform.system() == 'Windows' and platform.release() == 'post2008Server':
-		# We are running under windows, so indicate that this is a new app
-		# and should not be considered as running under Python. This ensures
-		# the program icon is displayed in the taskbar instead of the generic
-		# Python icon.
-		import ctypes
-		myappid = 'beikolab.software.stamp.2'  # arbitrary string
-		ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-
 	if (platform.system() == 'Windows' and len(sys.argv) == 1) or (platform.system() != 'Windows' and len(sys.argv) <= 2):
 		sys.excepthook = exceptHook
-		app = QtGui.QApplication(sys.argv)
+		app = QtWidgets.QApplication(sys.argv)
+
+		# classic Windows look of the original STAMP.exe; Fusion where Qt has no Windows style
+		if 'Windows' in QtWidgets.QStyleFactory.keys():
+			QtWidgets.QApplication.setStyle('Windows')
+		else:
+			QtWidgets.QApplication.setStyle('Fusion')
 
 		if(False):  # profile code
 			import cProfile
@@ -1850,7 +1859,7 @@ def main():
 			mainWindow = MainWindow(preferences)
 
 		mainWindow.show()
-		sys.exit(app.exec_())
+		sys.exit(app.exec())
 	else:
 		print('Failed to start STAMP.')
 		sys.exit()

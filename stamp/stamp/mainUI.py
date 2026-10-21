@@ -309,7 +309,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.dockProperties = QtWidgets.QDockWidget(parent=MainWindow)
         self.dockProperties.setMinimumSize(QtCore.QSize(325, 232))
-        self.dockProperties.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
+        self.dockProperties.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetClosable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.dockProperties.setAllowedAreas(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea|QtCore.Qt.DockWidgetArea.RightDockWidgetArea)
         self.dockProperties.setObjectName("dockProperties")
         self.dockWidgetContents = QtWidgets.QWidget()

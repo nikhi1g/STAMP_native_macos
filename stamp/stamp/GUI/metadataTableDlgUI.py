@@ -17,7 +17,7 @@ class Ui_MetadataTableDlg(object):
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/table.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         MetadataTableDlg.setWindowIcon(icon)
         MetadataTableDlg.setFloating(True)
-        MetadataTableDlg.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
+        MetadataTableDlg.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetClosable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)

@@ -21,24 +21,26 @@
 # along with STAMP. If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .metadataTableDlgUI import Ui_MetadataTableDlg
 
 from stamp.metagenomics.TableHelper import QTableWidgetNumericItem
 
-class MetadataTableDlg(QtGui.QDockWidget):
+class MetadataTableDlg(QtWidgets.QDockWidget):
+	activeSamplesChanged = QtCore.pyqtSignal()
+
 	def __init__(self, preferences, parent=None, info=None):
-		QtGui.QDockWidget.__init__(self, parent)
+		QtWidgets.QDockWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_MetadataTableDlg()
 		self.ui.setupUi(self)
 		
 		# setup signals
-		self.connect(self.ui.tbMetadataAddAll, QtCore.SIGNAL('clicked(bool)'), self.checkAll)
-		self.connect(self.ui.tbMetadataRemoveAll, QtCore.SIGNAL('clicked(bool)'), self.uncheckAll)
-		self.connect(self.ui.tbMetadataFilter, QtCore.SIGNAL('clicked(bool)'), self.filter)
-		self.connect(self.ui.cboMetadataField, QtCore.SIGNAL('currentIndexChanged(int)'), self.setValues)
+		self.ui.tbMetadataAddAll.clicked.connect(self.checkAll)
+		self.ui.tbMetadataRemoveAll.clicked.connect(self.uncheckAll)
+		self.ui.tbMetadataFilter.clicked.connect(self.filter)
+		self.ui.cboMetadataField.currentIndexChanged.connect(self.setValues)
 		
 		self.preferences = preferences
 		self.table = ''
@@ -47,24 +49,24 @@ class MetadataTableDlg(QtGui.QDockWidget):
 		
 	def checkAll(self):
 		for r in range(0, self.ui.tableMetadata.rowCount()):
-			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Checked)
+			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.CheckState.Checked)
 		self.updateActiveSamples()
 			
 	def uncheckAll(self):
 		for r in range(0, self.ui.tableMetadata.rowCount()):
-			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Unchecked)
+			self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.CheckState.Unchecked)
 		self.updateActiveSamples()
 			
 	def checkSpecifiedSamples(self, sampleIds):
 		for r in range(0, self.ui.tableMetadata.rowCount()):
 			if str(self.ui.tableMetadata.item(r,0).text()) in sampleIds:
-				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Checked)
+				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.CheckState.Checked)
 		self.updateActiveSamples()
 				
 	def uncheckSpecifiedSamples(self, sampleIds):
 		for r in range(0, self.ui.tableMetadata.rowCount()):
 			if str(self.ui.tableMetadata.item(r,0).text()) in sampleIds:
-				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.Unchecked)
+				self.ui.tableMetadata.item(r,0).setCheckState(QtCore.Qt.CheckState.Unchecked)
 		self.updateActiveSamples()
 			
 	def filter(self):
@@ -104,12 +106,17 @@ class MetadataTableDlg(QtGui.QDockWidget):
 		
 	def setValues(self):
 		field = str(self.ui.cboMetadataField.currentText())
+		if field == '':
+			# setFields() clearing a populated field list (loading a second profile) emits an index of -1;
+			# upstream then raised KeyError '' here. The values are refilled when the new fields are added.
+			return
+
 		values = self.metadata.getUniqueValues(field)
 
 		if self.metadata.isNumericalData(field):
-			values.sort(lambda x, y: cmp(float(x), float(y)))
+			values.sort(key=float)
 		else:
-			values.sort(lambda x, y: cmp(x.lower(),y.lower()))
+			values.sort(key=str.lower)
 
 		self.ui.cboMetadataValue.clear()
 		self.ui.cboMetadataValue.addItems(values)
@@ -123,16 +130,19 @@ class MetadataTableDlg(QtGui.QDockWidget):
 	def updateActiveSamples(self):
 		activeSamples = []
 		for r in range(0, self.ui.tableMetadata.rowCount()):
-			if self.ui.tableMetadata.item(r,0).checkState() == QtCore.Qt.Checked:
+			if self.ui.tableMetadata.item(r,0).checkState() == QtCore.Qt.CheckState.Checked:
 				activeSamples.append(str(self.ui.tableMetadata.item(r,0).text()))
 				
 		self.metadata.activeSamples = activeSamples
 		
-		self.emit(QtCore.SIGNAL('activeSamplesChanged()'))
+		self.activeSamplesChanged.emit()
 
 	def setTable(self, metadata):
 		if metadata != None:
-			self.disconnect(self.ui.tableMetadata, QtCore.SIGNAL('itemClicked(QTableWidgetItem*)'), self.itemClicked)
+			try:
+				self.ui.tableMetadata.itemClicked.disconnect(self.itemClicked)
+			except TypeError:
+				pass	# not connected yet (first table)
 			
 			self.metadata = metadata
 			
@@ -158,18 +168,18 @@ class MetadataTableDlg(QtGui.QDockWidget):
 					if isNumeric[j]:
 						item = QTableWidgetNumericItem(row[j])
 					else:
-						item = QtGui.QTableWidgetItem(row[j])
+						item = QtWidgets.QTableWidgetItem(row[j])
 
 					if j == 0:
-						item.setTextAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-						item.setCheckState(QtCore.Qt.Checked)
+						item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+						item.setCheckState(QtCore.Qt.CheckState.Checked)
 					else:
-						item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+						item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignVCenter)
 						
 					self.ui.tableMetadata.setItem(i, j, item)
 						
 			self.ui.tableMetadata.resizeColumnsToContents()
-			self.connect(self.ui.tableMetadata, QtCore.SIGNAL('itemClicked(QTableWidgetItem*)'), self.itemClicked)
+			self.ui.tableMetadata.itemClicked.connect(self.itemClicked)
 
 if __name__ == "__main__": 
 	pass

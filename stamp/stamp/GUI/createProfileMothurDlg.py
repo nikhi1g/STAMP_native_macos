@@ -21,7 +21,7 @@
 
 import string
 
-from PyQt4 import QtGui, QtCore
+from PyQt6 import QtCore, QtGui, QtWidgets
 from .createProfileMothurUI import Ui_CreateProfileMothurDlg
 
 class ProfileRow():
@@ -29,9 +29,9 @@ class ProfileRow():
 		countData = []
 		hierarchy = []
 
-class CreateProfileMothurDlg(QtGui.QDialog):
+class CreateProfileMothurDlg(QtWidgets.QDialog):
 	def __init__(self, preferences, parent=None):
-		QtGui.QWidget.__init__(self, parent)
+		QtWidgets.QWidget.__init__(self, parent)
 		
 		# initialize GUI
 		self.ui = Ui_CreateProfileMothurDlg()
@@ -41,34 +41,34 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 
 		self.centerWindow()
 		
-		QtCore.QObject.connect(self.ui.btnTaxonomyFile, QtCore.SIGNAL("clicked()"), self.loadTaxonomyFile)
-		QtCore.QObject.connect(self.ui.btnGroupsFile, QtCore.SIGNAL("clicked()"), self.loadGroupsFile)
-		QtCore.QObject.connect(self.ui.btnNamesFile, QtCore.SIGNAL("clicked()"), self.loadNamesFile)
-		QtCore.QObject.connect(self.ui.btnCreateProfile, QtCore.SIGNAL("clicked()"), self.createProfile)
-		QtCore.QObject.connect(self.ui.btnCancel, QtCore.SIGNAL("clicked()"), self.accept)
+		self.ui.btnTaxonomyFile.clicked.connect(self.loadTaxonomyFile)
+		self.ui.btnGroupsFile.clicked.connect(self.loadGroupsFile)
+		self.ui.btnNamesFile.clicked.connect(self.loadNamesFile)
+		self.ui.btnCreateProfile.clicked.connect(self.createProfile)
+		self.ui.btnCancel.clicked.connect(self.accept)
 		
 		self.taxonomyFile = None
 		self.groupsFile = None
 		self.namesFile = None
 
 	def loadTaxonomyFile(self):
-		selectedFile = QtGui.QFileDialog.getOpenFileName(self, 'Load taxonomy file', self.preferences['Last directory'], 'Taxonomy file (*.taxonomy);;All files (*.*)')
+		selectedFile = QtWidgets.QFileDialog.getOpenFileName(self, 'Load taxonomy file', self.preferences['Last directory'], 'Taxonomy file (*.taxonomy);;All files (*.*)')[0]
 		if selectedFile != '':
-			self.preferences['Last directory'] = selectedFile[0:selectedFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = selectedFile[0:selectedFile.rfind('/')]
 			self.ui.txtTaxonomyFile.setText(selectedFile)
 			self.taxonomyFile = selectedFile
 		
 	def loadGroupsFile(self):
-		selectedFile = QtGui.QFileDialog.getOpenFileName(self, 'Load groups file', self.preferences['Last directory'], 'Groups file (*.groups);;All files (*.*)')
+		selectedFile = QtWidgets.QFileDialog.getOpenFileName(self, 'Load groups file', self.preferences['Last directory'], 'Groups file (*.groups);;All files (*.*)')[0]
 		if selectedFile != '':
-			self.preferences['Last directory'] = selectedFile[0:selectedFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = selectedFile[0:selectedFile.rfind('/')]
 			self.ui.txtGroupsFile.setText(selectedFile)
 			self.groupsFile = selectedFile
 		
 	def loadNamesFile(self):
-		selectedFile = QtGui.QFileDialog.getOpenFileName(self, 'Load names file', self.preferences['Last directory'], 'Names file (*.names);;All files (*.*)')
+		selectedFile = QtWidgets.QFileDialog.getOpenFileName(self, 'Load names file', self.preferences['Last directory'], 'Names file (*.names);;All files (*.*)')[0]
 		if selectedFile != '':
-			self.preferences['Last directory'] = selectedFile[0:selectedFile.lastIndexOf('/')]
+			self.preferences['Last directory'] = selectedFile[0:selectedFile.rfind('/')]
 			self.ui.txtNamesFile.setText(selectedFile)
 			self.namesFile = selectedFile
 	
@@ -79,14 +79,14 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 			data = list(map(str.strip, fin.readlines()))
 			fin.close()
 		else:
-			QtGui.QMessageBox.information(self, 'Missing data', 'A Group file must be specified.', QtGui.QMessageBox.Ok)
+			QtWidgets.QMessageBox.information(self, 'Missing data', 'A Group file must be specified.', QtWidgets.QMessageBox.StandardButton.Ok)
 			return
 			
-		outputFile = QtGui.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'],'STAMP profile file(*.spf);;All files(*.*)')
+		outputFile = QtWidgets.QFileDialog.getSaveFileName(self, 'Save STAMP profile...', self.preferences['Last directory'],'STAMP profile file(*.spf);;All files(*.*)')[0]
 		if outputFile == '':
 			return
 			
-		QtGui.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		QtWidgets.QApplication.instance().setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 			
 		seqIdToSampleId = {}
 		sampleIds = set([])
@@ -188,11 +188,11 @@ class CreateProfileMothurDlg(QtGui.QDialog):
 			
 		fout.close()
 
-		QtGui.QApplication.instance().restoreOverrideCursor()
+		QtWidgets.QApplication.instance().restoreOverrideCursor()
 		
 		self.accept()
 
 	def centerWindow(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
+		screen = QtWidgets.QApplication.primaryScreen().availableGeometry()
 		size =	self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		self.move((screen.width()-size.width())//2, (screen.height()-size.height())//2)
