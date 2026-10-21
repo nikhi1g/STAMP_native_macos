@@ -1881,11 +1881,9 @@ def main():
 		# the style's own light palette, not the macOS (possibly dark) system palette, as on Windows
 		QtWidgets.QApplication.setPalette(QtWidgets.QApplication.style().standardPalette())
 
-		# macOS app bundle: finish a previous "Move to Applications", or offer one
+		# macOS app bundle: finish a previous "Move to Applications" (offered once the window is up)
 		from stamp import installLocation
 		installLocation.cleanupAfterMove()
-		if installLocation.offerMove(settings):
-			sys.exit(0)
 
 		if(False):  # profile code
 			import cProfile
@@ -1906,6 +1904,11 @@ def main():
 		plugins = [len(getattr(mainWindow, name, {})) for name in ('sampleStatTestDict', 'groupStatTestDict', 'multiGroupStatTestDict')]
 		plugins.append(sum(len(getattr(getattr(mainWindow, name, None), 'plotDict', {})) for name in ('samplePlot', 'groupPlot', 'multiGroupPlot')))
 		logging.info('Main window shown; plugins loaded (%d two-sample tests, %d two-group tests, %d multi-group tests, %d plots)', *plugins)
+
+		def offerMove():	# in front of the main window, so the user sees STAMP behind it
+			if installLocation.offerMove(settings, mainWindow):
+				app.quit()	# relaunched from Applications
+		QtCore.QTimer.singleShot(300, offerMove)
 		sys.exit(app.exec())
 	else:
 		print('Failed to start STAMP.')

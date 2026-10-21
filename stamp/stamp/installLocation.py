@@ -31,7 +31,7 @@ import subprocess
 SETTINGS_KEY = 'Install/Do not offer move to Applications'
 ENV_CLEANUP = 'STAMP_MOVE_CLEANUP'	# set on the relaunched copy: what to trash once the old one exits
 APP_NAME = 'STAMP.app'
-DOWNLOAD_ZIP = re.compile(r'^STAMP[-_ ]?[0-9.]*( \(\d+\))?\.zip$')
+DOWNLOAD_ZIP = re.compile(r'^STAMP([-_ ][0-9][0-9.]*)*( \(\d+\))?\.zip$')	# STAMP.zip, STAMP-2.1.3-2.zip, ... (1).zip
 
 def bundlePath(executable):
 	"""Path of the .app bundle containing executable, or None when not running from a bundle."""
@@ -164,6 +164,9 @@ def moveToTrash(path):
 def copyBundle(source, target):
 	subprocess.run(['ditto', source, target], check=True)
 	subprocess.run(['codesign', '--verify', '--strict', target], check=True, capture_output=True)
+	# the user already approved this notarized app at first launch; without this the copy in
+	# Applications keeps the download's quarantine flag and macOS keeps running it translocated
+	subprocess.run(['xattr', '-dr', 'com.apple.quarantine', target], capture_output=True)
 
 def relaunch(target, cleanup):
 	env = dict(os.environ)

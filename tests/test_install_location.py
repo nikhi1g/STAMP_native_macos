@@ -67,12 +67,13 @@ def test_leftover_zips_only_stamp_downloads(tmp_path):
 				z.writestr(m, 'x')
 	make('STAMP-2.1.3.zip', ['STAMP.app/Contents/Info.plist'])
 	make('STAMP-2.1.3 (1).zip', ['STAMP.app/Contents/Info.plist'])
+	make('STAMP-2.1.3-2.zip', ['STAMP.app/Contents/Info.plist'])        # version + build number
 	make('STAMP-2.1.3-other.zip', ['STAMP.app/Contents/Info.plist'])    # name does not match
 	make('STAMP.zip', ['notes.txt'])                                     # no STAMP.app inside
 	make('homework.zip', ['STAMP.app/Contents/Info.plist'])              # not a STAMP download
 	(tmp_path / 'STAMP-2.0.zip').write_text('not a zip')                 # unreadable
 	found = [os.path.basename(p) for p in il.leftoverZips(str(tmp_path))]
-	assert found == ['STAMP-2.1.3 (1).zip', 'STAMP-2.1.3.zip']
+	assert found == ['STAMP-2.1.3 (1).zip', 'STAMP-2.1.3-2.zip', 'STAMP-2.1.3.zip']
 
 
 def test_existing_target_never_touches_a_different_app(tmp_path):
