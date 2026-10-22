@@ -50,16 +50,26 @@ def install(checkForUpdates):
 	updates.triggered.connect(checkForUpdates)
 	menu.addAction(about)
 	menu.addAction(updates)
-	# macOS 26 style: info icon next to About (Qt builds the native menu lazily, so set it once it exists)
+	# macOS 26 style icons: info next to About, download next to Check for Updates (here and in the
+	# Dock menu). Qt builds the native menus lazily, so set them once they exist.
 	from PyQt6 import QtCore
 	from stamp import macNative
-	def addIcons(attempt=0):
+	icons = [
+		('app menu', 'About STAMP', 'info.circle', macNative.setAppMenuItemSymbol),
+		('app menu', 'Check for Updates...', 'arrow.down.circle', macNative.setAppMenuItemSymbol),
+		('Dock menu', 'Check for Updates...', 'arrow.down.circle', macNative.setDockMenuItemSymbol),
+	]
+	def addIcons(pending=icons, attempt=0):
 		import logging
-		if macNative.setAppMenuItemSymbol('About STAMP', 'info.circle'):
-			logging.info('app menu: About STAMP icon set (attempt %d)', attempt)
-		elif attempt < 20:
-			QtCore.QTimer.singleShot(250, lambda: addIcons(attempt + 1))
-		else:
-			logging.warning('app menu: About STAMP item not found; no icon')
+		left = []
+		for icon in pending:
+			if icon[3](icon[1], icon[2]):
+				logging.info('%s: %s icon set (attempt %d)', icon[0], icon[1], attempt)
+			else:
+				left.append(icon)
+		if left and attempt < 20:
+			QtCore.QTimer.singleShot(250, lambda: addIcons(left, attempt + 1))
+		elif left:
+			logging.warning('menu icons not set: %s', ', '.join('%s %s' % icon[:2] for icon in left))
 	QtCore.QTimer.singleShot(0, addIcons)
 	return _menuBar

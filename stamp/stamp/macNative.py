@@ -85,6 +85,16 @@ def showAboutPanel(name, version, creditsHtml):
 	])
 	send(app, 'orderFrontStandardAboutPanelWithOptions:', options, restype=None)
 
+def _setItemSymbol(menu, title, symbolName):
+	item = send(menu, 'itemWithTitle:', nsstring(title)) if menu else None
+	if not item:
+		return False
+	image = send(cls('NSImage'), 'imageWithSystemSymbolName:accessibilityDescription:', nsstring(symbolName), None)
+	if not image:	# SF Symbols need macOS 11+
+		return False
+	send(item, 'setImage:', image, restype=None)
+	return True
+
 def setAppMenuItemSymbol(title, symbolName):
 	"""Give an item of the application menu (the bold app-name menu) an SF Symbol icon, as macOS 26
 	shows for standard items such as About (info.circle). Returns True when the item was found."""
@@ -93,11 +103,12 @@ def setAppMenuItemSymbol(title, symbolName):
 	if not mainMenu or send(mainMenu, 'numberOfItems', restype=ctypes.c_long) < 1:
 		return False
 	appMenu = send(send(mainMenu, 'itemAtIndex:', 0, argtypes=[ctypes.c_long]), 'submenu')
-	item = send(appMenu, 'itemWithTitle:', nsstring(title)) if appMenu else None
-	if not item:
+	return _setItemSymbol(appMenu, title, symbolName)
+
+def setDockMenuItemSymbol(title, symbolName):
+	"""Same for the Dock icon's menu (Qt hands it to AppKit through the delegate's applicationDockMenu:)."""
+	app = send(cls('NSApplication'), 'sharedApplication')
+	delegate = send(app, 'delegate')
+	if not delegate or not send(delegate, 'respondsToSelector:', sel('applicationDockMenu:'), restype=ctypes.c_bool):
 		return False
-	image = send(cls('NSImage'), 'imageWithSystemSymbolName:accessibilityDescription:', nsstring(symbolName), None)
-	if not image:	# SF Symbols need macOS 11+
-		return False
-	send(item, 'setImage:', image, restype=None)
-	return True
+	return _setItemSymbol(send(delegate, 'applicationDockMenu:', app), title, symbolName)
