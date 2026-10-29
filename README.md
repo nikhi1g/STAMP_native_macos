@@ -1,5 +1,7 @@
 # STAMP for macOS (Apple Silicon)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23754637.svg)](https://doi.org/10.5281/zenodo.23754637)
+
 A native macOS port of **STAMP 2.1.3** (Statistical Analysis of Metagenomic Profiles; Parks,
 Tyson, Hugenholtz and Beiko, *Bioinformatics* 2014) for Apple Silicon Macs. It replaces the
 Windows `STAMP.exe` run through Porting Kit/Wine or a virtual machine. The statistics, plots,
@@ -156,8 +158,10 @@ software version you ran:
 - Parks DH, Tyson GW, Hugenholtz P, Beiko RG. STAMP: statistical analysis of taxonomic and
   functional profiles. *Bioinformatics* 30(21):3123–3124 (2014).
   [doi:10.1093/bioinformatics/btu494](https://doi.org/10.1093/bioinformatics/btu494)
-- Gupta N. STAMP for macOS (Apple Silicon). Zenodo. Each release from 2.1.10 on is archived
-  with its own DOI; see the release page or the Zenodo record.
+- Gupta N. STAMP for macOS (Apple Silicon). Zenodo.
+  [doi:10.5281/zenodo.23754637](https://doi.org/10.5281/zenodo.23754637) (all versions; resolves
+  to the latest). Each release has its own version DOI on the Zenodo record; 2.1.10 is
+  [doi:10.5281/zenodo.23754638](https://doi.org/10.5281/zenodo.23754638).
 
 ## License
 
