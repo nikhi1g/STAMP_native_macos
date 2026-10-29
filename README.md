@@ -148,7 +148,18 @@ Gatekeeper. `make_appcast.sh` signs the zip with the EdDSA key from the keychain
 the feed. Versions are semantic (`major.minor.patch`); the feed is the only mutable file and every
 release zip lives at an immutable versioned URL.
 
+## How to cite
+
+If you use this port, cite the original STAMP paper for the methods and this port for the
+software version you ran:
+
+- Parks DH, Tyson GW, Hugenholtz P, Beiko RG. STAMP: statistical analysis of taxonomic and
+  functional profiles. *Bioinformatics* 30(21):3123–3124 (2014).
+  [doi:10.1093/bioinformatics/btu494](https://doi.org/10.1093/bioinformatics/btu494)
+- Gupta N. STAMP for macOS (Apple Silicon). Zenodo. Each release from 2.1.10 on is archived
+  with its own DOI; see the release page or the Zenodo record.
+
 ## License
 
-GNU General Public License v3.0, as upstream ([stamp/LICENSE.txt](stamp/LICENSE.txt)).
+GNU General Public License v3.0 or later, as upstream ([LICENSE](LICENSE), a copy of [stamp/LICENSE.txt](stamp/LICENSE.txt)).
 Original STAMP © 2011–2015 Donovan Parks and Robert Beiko. macOS port © 2026 Nikhil Gupta.
